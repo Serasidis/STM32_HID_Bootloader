@@ -1,4 +1,4 @@
-TARGET = HIDBOOTLOADER
+TARGET = hid_bootloader
 
 DEVICE = STM32F10X_MD
 
