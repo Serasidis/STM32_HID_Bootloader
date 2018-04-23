@@ -17,7 +17,7 @@
 *
 * Modified 20 April 2018
 *	by Vassilis Serasidis <info@serasidis.gr>
-*	Now, this HID bootloader work with bluepill + STM32duino + Arduino IDE <http://www.stm32duino.com/>
+*	This HID bootloader work with bluepill + STM32duino + Arduino IDE <http://www.stm32duino.com/>
 *
 */
 
@@ -56,15 +56,20 @@ int main(int argc, char *argv[]) {
 	uint8_t page_data[1024];
 	uint8_t hid_buffer[129];
 	uint8_t CMD_RESET_PAGES[8] = {'B','T','L','D','C','M','D', 0x00};
+	uint8_t CMD_REBOOT_MCU[8] = {'B','T','L','D','C','M','D', 0x01};
 	hid_device *handle = NULL;
 	size_t read_bytes;
 	FILE *config_file = NULL, *firmware_file = NULL;
 	int error = 0;
-
+	int dots = 0;
 	setbuf(stdout, NULL);
-
-	printf("HID-Flash v1.3b - STM32 HID Bootloader Flash Tool\n");
-	printf("(c) 04/2018 - Bruno Freitas - http://www.brunofreitas.com/\n\n");
+	
+	printf("\n+----------------------------------------------------------------------+\n");
+	printf  ("|         HID-Flash v1.4 - STM32 HID Bootloader Flash Tool             |\n");
+	printf  ("|     (c) 04/2018 - Bruno Freitas - http://www.brunofreitas.com/       |\n");
+	printf  ("|     (c) 20/2018 - Vassilis Serasidis - http://www.serasidis.gr/      |\n");
+	printf  ("|   Customized for STM32duino echosystem - http://www.stm32duino.com/  |\n");
+	printf  ("+----------------------------------------------------------------------+\n\n");
 	
 	if(argc != 3) {
 		printf("Usage: hid-flash <firmware_bin_file> <COM port>\n");
@@ -95,11 +100,11 @@ int main(int argc, char *argv[]) {
 	memset(hid_buffer, 0, sizeof(hid_buffer));
 	memcpy(&hid_buffer[1], CMD_RESET_PAGES, sizeof(CMD_RESET_PAGES));
 
-	printf("Sending reset pages command...\n");
+	printf("Sending <reset pages> command...\n");
 
 	// Flash is unavailable when writing to it, so USB interrupt may fail here
 	if(!usb_write(handle, hid_buffer, 129)) {
-		printf("Error while sending reset pages command.\n");
+		printf("Error while sending <reset pages> command.\n");
 		error = 1;
 		goto exit;
 	}
@@ -118,7 +123,11 @@ int main(int argc, char *argv[]) {
 
 		for(int i = 0; i < 1024; i += 128) {
 			memcpy(&hid_buffer[1], page_data + i, 128);
-
+			if(dots++ > 70){
+				printf("\n");
+				dots = 0;
+			}
+			printf(".");
 			// Flash is unavailable when writing to it, so USB interrupt may fail here
 			if(!usb_write(handle, hid_buffer, 129)) {
 				printf("Error while flashing firmware data.\n");
@@ -131,8 +140,19 @@ int main(int argc, char *argv[]) {
 		read_bytes = fread(page_data, 1, sizeof(page_data), firmware_file);
 	}
 
-	printf("Ok!\n");
+	printf("\nDone!\n");
+	
+ 	// Send CMD_REBOOT_MCU command to reboot the microcontroller...
+	memset(hid_buffer, 0, sizeof(hid_buffer));
+	memcpy(&hid_buffer[1], CMD_REBOOT_MCU, sizeof(CMD_REBOOT_MCU));
 
+	printf("Sending <reboot mcu> command...\n");
+
+	// Flash is unavailable when writing to it, so USB interrupt may fail here
+	if(!usb_write(handle, hid_buffer, 129)) {
+		printf("Error while sending <reboot mcu> command.\n");
+	}
+	
 	exit:
 
 	if(handle) {
@@ -149,14 +169,12 @@ int main(int argc, char *argv[]) {
 }
 
 int serial_init(int ser_num) {
-	//printf("aaa %i",ser_num);
   int cport_nr = ser_num - 1;			/* COM port number (ex COM6 must be number 5*/
   int	bdrate=9600;		/* 9600 baud */
 
   char mode[]={'8','N','1',0};
 	unsigned char magic[4] = "1EAF";
 	
-  //printf("hello\n");
   if(RS232_OpenComport(cport_nr, bdrate, mode)){
     printf("Can not open com-port\n");
 

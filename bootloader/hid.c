@@ -42,7 +42,8 @@ extern volatile uint16_t DeviceConfigured, DeviceStatus;
 
 static USB_SetupPacket *SetupPacket;
 extern uint32_t timeout;
-extern uploadStarted;
+extern bool uploadStarted;
+extern bool uploadFinished;
 
 /* buffer table base address */
 #define BTABLE_ADDRESS      (0x00)
@@ -279,10 +280,13 @@ void HIDUSB_HandleData(uint8_t *data) {
 		if(HIDUSB_PacketIsCommand()) {
 			switch(pageData[7]) {
 			case 0x00: // Reset Page Command
+				uploadStarted = true;
 				currentPage = MIN_PAGE;
 				currentPageOffset = 0;
-
-				break;
+			break;
+			case 0x01: // Reboot MCU Command
+				uploadFinished = true;
+			break;
 			default:
 				break;
 			}
@@ -302,8 +306,6 @@ void HIDUSB_HandleData(uint8_t *data) {
 			currentPageOffset = 0;
 
 			led_off();
-			timeout = 0;
-			uploadStarted = true;
 		}
 	}
 }

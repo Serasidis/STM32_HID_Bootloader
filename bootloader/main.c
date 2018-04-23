@@ -17,7 +17,7 @@
 *
 * Modified 20 April 2018
 *	by Vassilis Serasidis <info@serasidis.gr>
-*	Now, this HID bootloader work with bluepill + STM32duino + Arduino IDE <http://www.stm32duino.com/>
+*	This HID bootloader works with bluepill + STM32duino + Arduino IDE <http://www.stm32duino.com/>
 *
 */
 
@@ -41,9 +41,9 @@ void led_off();
 void USB_Shutdown();
 volatile uint32_t timeout = 0;
 bool checkUserCode(u32 usrAddr);
-void check_bootloader_timeout();
-bool uploadStarted = false;
-
+bool check_flash_complete(void);
+bool uploadStarted;
+bool uploadFinished;
 
 uint16_t get_and_clear_magic_word() {
 	bit_set(RCC->APB1ENR, RCC_APB1ENR_BKPEN | RCC_APB1ENR_PWREN);
@@ -51,11 +51,11 @@ uint16_t get_and_clear_magic_word() {
 	uint16_t value = BKP->DR10;
 
 	if(value) {
-        bit_set(PWR->CR, PWR_CR_DBP);
+	bit_set(PWR->CR, PWR_CR_DBP);
 
-        BKP->DR10 = 0x0000;
+	BKP->DR10 = 0x0000;
 
-        bit_clear(PWR->CR, PWR_CR_DBP);
+	bit_clear(PWR->CR, PWR_CR_DBP);
 	}
 
 	bit_clear(RCC->APB1ENR, RCC_APB1ENR_BKPEN | RCC_APB1ENR_PWREN);
@@ -64,17 +64,13 @@ uint16_t get_and_clear_magic_word() {
 }
 
 int main() {
+	uploadStarted = false;
+	uploadFinished = false;
 	uint32_t userProgramAddress = *(volatile uint32_t *)(USER_PROGRAM + 0x04);
 	funct_ptr userProgram = (funct_ptr) userProgramAddress;
-
+	
 	// Turn GPIOA clock on
 	bit_set(RCC->APB2ENR, RCC_APB2ENR_IOPAEN);
-
-	// Set A8 as Input Mode with Pull-ups
-	bit_clear(GPIOA->CRH, GPIO_CRH_MODE8);
-	bit_clear(GPIOA->CRH, GPIO_CRH_CNF8_0);
-	bit_set(GPIOA->CRH, GPIO_CRH_CNF8_1);
-	bit_set(GPIOA->ODR, GPIO_ODR_ODR8);
 
 	// Turn GPIOB clock on
 	bit_set(RCC->APB2ENR, RCC_APB2ENR_IOPBEN);
@@ -87,48 +83,31 @@ int main() {
 	// Wait 1uS so the pull-up settles...
 	delay(72);
 	
-	if (checkUserCode(USER_CODE_FLASH0X8001000) == false){ //Check if the User Code is uploaded to the MCU
+	// If PB2 (BOOT 1 pin) is HIGH enter HID bootloader or no User Code is uploaded to the MCU ...
+	if((GPIOB->IDR & GPIO_IDR_IDR2)||(checkUserCode(USER_CODE_FLASH0X8001000) == false)) {
 		USB_Init(HIDUSB_EPHandler, HIDUSB_Reset);
-		for(;;){
-			//led_on();
-			//delay(200000L);
-			//led_off();
-			//delay(200000L);
-			
-			if(uploadStarted == true){
-				check_bootloader_timeout(20000L);
-			}
-		}
+	
+		while(check_flash_complete() == false){};
 	}
 	
-	// If B2 is HIGH enter HID bootloader...
-	if((GPIOB->IDR & GPIO_IDR_IDR2) || (get_and_clear_magic_word() == 0x424C)) {
+ /**
+	* If  <Battery Backed RAM Register> was set from Arduino IDE
+	* exit from USB Serial mode and go to HID mode.
+	*/
+	if(get_and_clear_magic_word() == 0x424C) {
 
 		USB_Shutdown();
 		delay(4000000L);
 		USB_Init(HIDUSB_EPHandler, HIDUSB_Reset);
 		
-		check_bootloader_timeout(20000L);
-		
-		/* for(;;){
-			delay(20000L);
-			if(timeout++ == 1000){
-				break;
-			}
-		}
+		while(check_flash_complete() == false){};
 		
 		USB_Shutdown(); 			//Reset USB
 		NVIC_SystemReset();		//Reset STM32
 		
-		for(;;); */
+		for(;;);
 	
 	}
-
-	// Set A8 to input floating
-	bit_clear(GPIOA->CRH, GPIO_CRH_MODE8);
-	bit_set(GPIOA->CRH, GPIO_CRH_CNF8_0);
-	bit_clear(GPIOA->CRH, GPIO_CRH_CNF8_1);
-	bit_clear(GPIOA->ODR, GPIO_ODR_ODR8);
 
 	// Turn GPIOA clock off
 	bit_clear(RCC->APB2ENR, RCC_APB2ENR_IOPAEN);
@@ -145,28 +124,25 @@ int main() {
 	for(;;);
 }
 
-void check_bootloader_timeout(uint32_t tmr){
-	for(;;){
-		delay(tmr);
-		if(timeout++ == 1000){
-			break;
-		}
+bool check_flash_complete(void){
+	if(uploadFinished == true){
+		return true;
 	}
-		
-	USB_Shutdown(); 			//Reset USB
-	NVIC_SystemReset();		//Reset STM32
-		
-	for(;;);	
+	led_on();
+	delay(200000L);
+	led_off();
+	delay(200000L);
+	return false;
 }
 
 bool checkUserCode(u32 usrAddr) {
-    u32 sp = *(vu32 *) usrAddr;
+	u32 sp = *(vu32 *) usrAddr;
 
-    if ((sp & 0x2FFE0000) == 0x20000000) {
-        return (true);
-    } else {
-        return (false);
-    }
+	if ((sp & 0x2FFE0000) == 0x20000000) {
+		return (true);
+	} else {
+			return (false);
+	}
 }
 
 void delay(uint32_t tmr){
