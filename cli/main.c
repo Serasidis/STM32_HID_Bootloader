@@ -68,7 +68,7 @@ int main(int argc, char *argv[]) {
 	printf  ("|         HID-Flash v1.4 - STM32 HID Bootloader Flash Tool             |\n");
 	printf  ("|     (c) 04/2018 - Bruno Freitas - http://www.brunofreitas.com/       |\n");
 	printf  ("|     (c) 20/2018 - Vassilis Serasidis - http://www.serasidis.gr/      |\n");
-	printf  ("|   Customized for STM32duino echosystem - http://www.stm32duino.com/  |\n");
+	printf  ("|   Customized for STM32duino ecosystem - http://www.stm32duino.com/  |\n");
 	printf  ("+----------------------------------------------------------------------+\n\n");
 	
 	if(argc != 3) {
