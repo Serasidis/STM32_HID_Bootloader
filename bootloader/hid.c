@@ -132,8 +132,8 @@ static const uint8_t usbHidReportDescriptor[32] = {
 
 void HIDUSB_Reset() {
 
-	led_init();
-	led_off();
+	//led_init();
+	//led_off();
 
 	// Initialize Flash Page Settings
 	currentPage = MIN_PAGE;

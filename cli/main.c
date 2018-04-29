@@ -59,16 +59,16 @@ int main(int argc, char *argv[]) {
 	uint8_t CMD_REBOOT_MCU[8] = {'B','T','L','D','C','M','D', 0x01};
 	hid_device *handle = NULL;
 	size_t read_bytes;
-	FILE *config_file = NULL, *firmware_file = NULL;
+	FILE *firmware_file = NULL;
 	int error = 0;
 	int dots = 0;
 	setbuf(stdout, NULL);
 	
 	printf("\n+----------------------------------------------------------------------+\n");
-	printf  ("|         HID-Flash v1.4 - STM32 HID Bootloader Flash Tool             |\n");
+	printf  ("|         HID-Flash v1.4b - STM32 HID Bootloader Flash Tool             |\n");
 	printf  ("|     (c) 04/2018 - Bruno Freitas - http://www.brunofreitas.com/       |\n");
-	printf  ("|     (c) 20/2018 - Vassilis Serasidis - http://www.serasidis.gr/      |\n");
-	printf  ("|   Customized for STM32duino ecosystem - http://www.stm32duino.com/  |\n");
+	printf  ("|     (c) 04/2018 - Vassilis Serasidis - http://www.serasidis.gr/      |\n");
+	printf  ("|   Customized for STM32duino ecosystem - http://www.stm32duino.com/   |\n");
 	printf  ("+----------------------------------------------------------------------+\n\n");
 	
 	if(argc != 3) {
@@ -128,6 +128,7 @@ int main(int argc, char *argv[]) {
 				dots = 0;
 			}
 			printf(".");
+			usleep(5000);
 			// Flash is unavailable when writing to it, so USB interrupt may fail here
 			if(!usb_write(handle, hid_buffer, 129)) {
 				printf("Error while flashing firmware data.\n");

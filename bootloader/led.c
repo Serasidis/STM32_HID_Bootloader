@@ -17,26 +17,29 @@
  */
 
 #include <stm32f10x.h>
-
-#include "bitwise.h"
+#include "config.h"
 
 void led_off() {
-	GPIOC->BSRR = GPIO_BSRR_BS13; // Set PC_13 HIGH (open drain)
+	LED1_OFF;
 }
 
 void led_on() {
-	GPIOC->BRR = GPIO_BRR_BR13; // Set PC_13 LOW (Reset)
+	LED1_ON;
 }
 
 void led_init() {
-	// I/O port C clock enable
-	bit_set(RCC->APB2ENR, RCC_APB2ENR_IOPCEN);
-
-	// PC_13 output mode: General purpose output open drain (b01)
-	bit_set(GPIOC->CRH, GPIO_CRH_CNF13_0);
-	bit_clear(GPIOC->CRH, GPIO_CRH_CNF13_1);
-
-
-	// Set PC_13 to output
-	bit_set(GPIOC->CRH, GPIO_CRH_MODE13);  // PC_13 set as: Output mode, max speed 50 MHz.
+#if defined HAS_LED1_PIN	
+	LED1_CLOCK_EN;
+	LED1_BIT_0;
+	LED1_BIT_1;
+	LED1_MODE;
+#endif
+	
+#if defined HAS_DISC_PIN
+	DISC_CLOCK_EN;
+	DISC_BIT_0;
+	DISC_BIT_1;
+	DISC_MODE;
+#endif
+	
 }

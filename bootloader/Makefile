@@ -13,7 +13,10 @@ INCLUDE_DIRS += -I .
 INCLUDE_DIRS += -I CMSIS/Device/ST/STM32F10x/Include 
 INCLUDE_DIRS += -I CMSIS/Include
 
-LINKER_SCRIPT = STM32F103C8T6.ld
+#LINKER_SCRIPT = STM32F103C8T6.ld
+#TARGETFLAGS= -DTARGET_GENERIC_F103_PC13
+#LINKER_SCRIPT = STM32F103CBT6.ld
+#TARGETFLAGS= -DTARGET_MAPLE_MINI
 
 SRCS += $(DEVICE_SRCS)
 OBJS = $(addsuffix .o,  $(basename $(SRCS)))
@@ -24,15 +27,14 @@ CFLAGS += -mcpu=cortex-m3 -mthumb -Wall -Os
 CFLAGS += -fno-common -static
 CFLAGS += -ffunction-sections -fdata-sections
 CFLAGS += -specs=nano.specs -specs=nosys.specs
-#CFLAGS += -flto
 CFLAGS += $(INCLUDE_DIRS)
 CFLAGS += -D$(DEVICE)
 CFLAGS += -DVECTOR_TABLE_OFFSET=$(VECTOR_TABLE_OFFSET)
+CFLAGS += $(TARGETFLAGS)
 
 LDFLAGS += -Wl,-Map=$(TARGET).map,--cref
 LDFLAGS += -Wl,--gc-sections
 LDFLAGS += -Wl,--print-memory-usage
-#LDFLAGS += -flto
 LDFLAGS += -T$(LINKER_SCRIPT)
 
 CC = arm-none-eabi-gcc
@@ -48,23 +50,38 @@ RM = rm
 
 .PHONY: all build output info size clean flash
 
-all: $(SRCS) gccversion build output info size
+all: $(SRCS) clean gccversion build output info size
+
+maple-mini: $(SRCS) clean gccversion build_maple-mini copy_maple_mini info size
+generic-pc13: $(SRCS) clean gccversion build_generic-pc13 copy_generic-pc13 info size
 
 build: $(TARGET).elf
+
+build_maple-mini: TARGETFLAGS= -DTARGET_MAPLE_MINI
+build_maple-mini: LINKER_SCRIPT=STM32F103CBT6.ld
+build_maple-mini: $(TARGET).elf $(TARGET).bin
+copy_maple_mini:
+	cp $(TARGET).bin bootloader_only_binaries/hid_maple_mini.bin
+
+build_generic-pc13: TARGETFLAGS= -DTARGET_GENERIC_F103_PC13
+build_generic-pc13: LINKER_SCRIPT=STM32F103C8T6.ld
+build_generic-pc13: $(TARGET).elf $(TARGET).bin
+copy_generic-pc13:
+	cp $(TARGET).bin bootloader_only_binaries/hid_generic_pc13.bin
 
 $(TARGET).elf: $(OBJS)
 	$(CC) $(LDFLAGS) $(CFLAGS) $(OBJS) -o "$@"
 
-.SECONDARY: $(OBJS)
+#.SECONDARY: $(OBJS)
 
-%.o: %.c
-	$(CC) $(CFLAGS) -c "$<" -o "$@"
+#%.o: %.c
+#	$(CC) $(CFLAGS) -c "$<" -o "$@"
 
-%.o: %.s
-	$(AS) $(ASFLAGS) -c "$<" -o "$@"
+#%.o: %.s
+#	$(AS) $(ASFLAGS) -c "$<" -o "$@"
 
-%.s : %.c
-	$(CC) -S $(CFLAGS) $< -o $@
+#%.s : %.c
+#	$(CC) -S $(CFLAGS) $< -o $@
 
 output: $(TARGET).hex $(TARGET).bin
 
@@ -73,7 +90,7 @@ $(TARGET).hex: $(TARGET).elf
 
 $(TARGET).bin: $(TARGET).elf
 	$(OBJCOPY) -O binary $< $@
-	
+
 gccversion:
 	@$(CC) --version
 
@@ -94,3 +111,4 @@ clean:
 	$(RM) -f $(TARGET).dis
 	$(RM) -f $(TARGET).map
 	$(RM) -f $(OBJS)
+
