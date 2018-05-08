@@ -99,8 +99,7 @@ int main() {
 	delay(72);
 	
 	// If PB2 (BOOT 1 pin) is HIGH enter HID bootloader or no User Code is uploaded to the MCU ...
-	//if((GPIOB->IDR & GPIO_IDR_IDR2)||(checkUserCode(USER_CODE_FLASH0X8001000) == false)) {
-	if(checkUserCode(USER_CODE_FLASH0X8001000) == false){
+	if((GPIOB->IDR & GPIO_IDR_IDR2)||(checkUserCode(USER_CODE_FLASH0X8001000) == false)) {
 		USB_Init(HIDUSB_EPHandler, HIDUSB_Reset);
 	
 		while(check_flash_complete() == false){
