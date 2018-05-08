@@ -12,9 +12,11 @@ else
 	UNAME_S := $(shell uname -s)
 	ifeq ($(UNAME_S),Darwin)
 		SOURCES+=hid-mac.c
+		SOURCES+=rs232.c
 		LIBS=-framework IOKit -framework CoreFoundation
 	else
 		SOURCES+=hid-libusb.c
+		SOURCES+=rs232.c
 		LIBS=`pkg-config libusb-1.0 --libs` -lrt -lpthread
 		INCLUDE_DIRS+=`pkg-config libusb-1.0 --cflags`
 		CFLAGS+=-std=gnu99

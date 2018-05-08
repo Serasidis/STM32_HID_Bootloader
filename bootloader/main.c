@@ -17,7 +17,7 @@
 *
 * Modified 20 April 2018
 *	by Vassilis Serasidis <info@serasidis.gr>
-*	This HID bootloader works with bluepill + STM32duino + Arduino IDE <http://www.stm32duino.com/>
+*	This HID bootloader works with STM32F103 + STM32duino + Arduino IDE <http://www.stm32duino.com/>
 *
 */
 
@@ -26,9 +26,10 @@
 #include <stm32f10x.h>
 #include <stdbool.h>
 #include "usb.h"
+#include "config.h"
 #include "hid.h"
 #include "bitwise.h"
-#include "config.h"
+
 
 // HID Bootloader takes 4 kb flash.
 #define USER_PROGRAM 0x08001000
@@ -36,8 +37,17 @@
 
 typedef void (*funct_ptr)(void);
 void delay(uint32_t tmr);
+
+#if defined HAS_LED1_PIN
 void led_on();
 void led_off();
+#endif
+
+#if defined HAS_LED2_PIN
+void led2_on();
+void led2_off();
+#endif
+
 void led_init();
 void USB_Shutdown();
 void blink_led(uint16_t times);
@@ -64,6 +74,11 @@ uint16_t get_and_clear_magic_word() {
 
 int main() {
 	led_init();
+	
+#if defined HAS_LED2_PIN
+	led2_off();
+#endif
+		
 	uploadStarted = false;
 	uploadFinished = false;
 	uint32_t userProgramAddress = *(volatile uint32_t *)(USER_PROGRAM + 0x04);
@@ -89,9 +104,10 @@ int main() {
 		USB_Init(HIDUSB_EPHandler, HIDUSB_Reset);
 	
 		while(check_flash_complete() == false){
+			delay(400L);
 		};
 		
-		USB_Shutdown(); 			//Reset USB
+		USB_Shutdown(); 		//Reset USB
 		NVIC_SystemReset();		//Reset STM32
 		
 		for(;;);
@@ -102,16 +118,19 @@ int main() {
 	* exit from USB Serial mode and go to HID mode.
 	*/
 	if(get_and_clear_magic_word() == 0x424C) {
-		//blink_led(6);
-		//delay(40000L);
 		
+#if defined HAS_LED2_PIN
+		led2_on();
+#endif
+
 		USB_Shutdown();
-		delay(40000L);
+		delay(4000000L);
 		USB_Init(HIDUSB_EPHandler, HIDUSB_Reset);
-		
+		//delay(400000000L);
 		while(check_flash_complete() == false){
-			delay(4000000L);
+			delay(400L);
 		};
+		
 		USB_Shutdown(); 			//Reset USB
 		NVIC_SystemReset();		//Reset STM32
 		
@@ -119,6 +138,10 @@ int main() {
 	
 	}
 	
+#if defined HAS_LED2_PIN
+	led2_on();
+#endif
+
 	// Turn GPIOA clock off
 	bit_clear(RCC->APB2ENR, RCC_APB2ENR_IOPAEN);
 
@@ -138,9 +161,11 @@ bool check_flash_complete(void){
 	}
 	
 	if(uploadStarted == false){
+#if defined HAS_LED1_PIN
 		led_on();
 		delay(200000L);
 		led_off();
+#endif
 		delay(200000L);
 	}
 	return false;
@@ -158,9 +183,11 @@ bool checkUserCode(u32 usrAddr) {
 
 void blink_led(uint16_t times){
 	for(int i=0;i<times;i++){
+#if defined HAS_LED1_PIN
 		led_on();
 		delay(200000L);
 		led_off();
+#endif
 		delay(200000L);
 	}
 }

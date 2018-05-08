@@ -65,14 +65,14 @@ int main(int argc, char *argv[]) {
 	setbuf(stdout, NULL);
 	
 	printf("\n+----------------------------------------------------------------------+\n");
-	printf  ("|         HID-Flash v1.4b - STM32 HID Bootloader Flash Tool             |\n");
+	printf  ("|         HID-Flash v1.4c - STM32 HID Bootloader Flash Tool            |\n");
 	printf  ("|     (c) 04/2018 - Bruno Freitas - http://www.brunofreitas.com/       |\n");
 	printf  ("|     (c) 04/2018 - Vassilis Serasidis - http://www.serasidis.gr/      |\n");
 	printf  ("|   Customized for STM32duino ecosystem - http://www.stm32duino.com/   |\n");
 	printf  ("+----------------------------------------------------------------------+\n\n");
 	
 	if(argc != 3) {
-		printf("Usage: hid-flash <firmware_bin_file> <COM port>\n");
+		printf("Usage: hid-flash <firmware_bin_file> <comport>\n");
 
 		return 1;
 	}
@@ -171,31 +171,24 @@ int main(int argc, char *argv[]) {
 
 int serial_init(int ser_num) {
   int cport_nr = ser_num - 1;			/* COM port number (ex COM6 must be number 5*/
-  int	bdrate=9600;		/* 9600 baud */
+  int	bdrate=1200;		/* 1200 baud */
 
   char mode[]={'8','N','1',0};
-	unsigned char magic[4] = "1EAF";
+	//unsigned char magic[4] = "1EAF";
 	
   if(RS232_OpenComport(cport_nr, bdrate, mode)){
-    printf("Can not open com-port\n");
+    printf("Can not open comport\n");
 
     return(0);
   }
 	
-	printf("Sending Magic sequence \"1EAF\"\n");
-	RS232_disableRTS(cport_nr);
-	RS232_disableDTR(cport_nr);
-  RS232_enableDTR(cport_nr);
-  usleep(50000L);
-	RS232_disableDTR(cport_nr);
-	RS232_enableRTS(cport_nr);
-  RS232_enableDTR(cport_nr);
-	usleep(50000L);
+	printf("Toggling DTR...\n");
 	RS232_disableDTR(cport_nr);
 	usleep(50000L);
-	RS232_SendBuf(cport_nr, magic, 4); //Magic sequence
+	RS232_enableDTR(cport_nr);
+	usleep(50000L);
 	RS232_CloseComport(cport_nr);
-	sleep(3);
+	sleep(1);
 	
 	return 0;
 }

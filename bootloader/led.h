@@ -19,8 +19,16 @@
 #ifndef LED_H_
 #define LED_H_
 
+#if defined HAS_LED1_PIN	
 void led_on();
 void led_off();
+#endif	
+
+#if defined HAS_LED2_PIN	
+void led2_on();
+void led2_off();
+#endif
+
 void led_init();
 
 #endif /* LED_H_ */

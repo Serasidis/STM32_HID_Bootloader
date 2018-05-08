@@ -19,6 +19,7 @@
 #include <stm32f10x.h>
 #include "config.h"
 
+#if defined HAS_LED1_PIN	
 void led_off() {
 	LED1_OFF;
 }
@@ -26,6 +27,17 @@ void led_off() {
 void led_on() {
 	LED1_ON;
 }
+#endif
+
+#if defined HAS_LED2_PIN	
+void led2_off() {
+	LED2_OFF;
+}
+
+void led2_on() {
+	LED2_ON;
+}
+#endif
 
 void led_init() {
 #if defined HAS_LED1_PIN	
@@ -34,7 +46,14 @@ void led_init() {
 	LED1_BIT_1;
 	LED1_MODE;
 #endif
-	
+
+#if defined HAS_LED2_PIN	
+	LED2_CLOCK_EN;
+	LED2_BIT_0;
+	LED2_BIT_1;
+	LED2_MODE;
+#endif
+
 #if defined HAS_DISC_PIN
 	DISC_CLOCK_EN;
 	DISC_BIT_0;
