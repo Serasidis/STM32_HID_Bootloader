@@ -29,7 +29,7 @@
 #include "rs232.h"
 #include "hidapi.h"
 
-int serial_init(int ser_num) ;
+int serial_init(char *argument);
 
 
 static int usb_write(hid_device *device, uint8_t *buffer, int len) {
@@ -65,7 +65,7 @@ int main(int argc, char *argv[]) {
 	setbuf(stdout, NULL);
 	
 	printf("\n+----------------------------------------------------------------------+\n");
-	printf  ("|         HID-Flash v1.4c - STM32 HID Bootloader Flash Tool            |\n");
+	printf  ("|         HID-Flash v1.4e - STM32 HID Bootloader Flash Tool            |\n");
 	printf  ("|     (c) 04/2018 - Bruno Freitas - http://www.brunofreitas.com/       |\n");
 	printf  ("|     (c) 04/2018 - Vassilis Serasidis - http://www.serasidis.gr/      |\n");
 	printf  ("|   Customized for STM32duino ecosystem - http://www.stm32duino.com/   |\n");
@@ -77,14 +77,13 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 	
-	int ser_num = atoi(argv[2]);
-	serial_init(ser_num);
+  serial_init(argv[2]);
 	hid_init();
 
 	handle = hid_open(0xF055, 0x0001, NULL);
 
 	if (!handle) {
-		printf("Unable to open device.\n");
+		printf("Unable to open the HID device.\n");
 		error = 1;
 		goto exit;
 	}
@@ -169,26 +168,24 @@ int main(int argc, char *argv[]) {
 	return error;
 }
 
-int serial_init(int ser_num) {
-  int cport_nr = ser_num - 1;			/* COM port number (ex COM6 must be number 5*/
-  int	bdrate=1200;		/* 1200 baud */
-
-  char mode[]={'8','N','1',0};
-	//unsigned char magic[4] = "1EAF";
-	
-  if(RS232_OpenComport(cport_nr, bdrate, mode)){
-    printf("Can not open comport\n");
-
+int serial_init(char *argument) {
+  printf("Trying to open the comport...\n");
+  if(RS232_OpenComport(argument)){
     return(0);
   }
-	
 	printf("Toggling DTR...\n");
-	RS232_disableDTR(cport_nr);
+	RS232_disableRTS();
+ 	RS232_enableDTR();
 	usleep(50000L);
-	RS232_enableDTR(cport_nr);
+	RS232_enableRTS();
 	usleep(50000L);
-	RS232_CloseComport(cport_nr);
-	sleep(1);
+	RS232_disableDTR();
+	usleep(50000L);
+	RS232_cputs("1EAF");
+	usleep(50000L);
+	RS232_disableRTS();
 	
+	RS232_CloseComport();
+	sleep(3);
 	return 0;
 }

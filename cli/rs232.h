@@ -25,7 +25,11 @@
 ***************************************************************************
 */
 
-/* Last revision: August 5, 2017 */
+/**
+ * This rs232 source code file is a customized version for HID Bootloader project
+ * (c) 10 May 2018 by Vassilis Serasidis http://www.serasidis.gr <avrsite@yahoo.gr>
+ *
+ */
 
 /* For more info and how to use this library, visit: http://www.teuniz.net/RS-232/ */
 
@@ -42,7 +46,7 @@ extern "C" {
 
 
 
-#if defined(__linux__) || defined(__FreeBSD__)
+#if defined(__linux__) || defined(__FreeBSD__) || defined(__APPLE__)
 
 #include <termios.h>
 #include <sys/ioctl.h>
@@ -60,23 +64,15 @@ extern "C" {
 
 #endif
 
-int RS232_OpenComport(int, int, const char *);
-int RS232_PollComport(int, unsigned char *, int);
-int RS232_SendByte(int, unsigned char);
-int RS232_SendBuf(int, unsigned char *, int);
-void RS232_CloseComport(int);
-void RS232_cputs(int, const char *);
-int RS232_IsDCDEnabled(int);
-int RS232_IsCTSEnabled(int);
-int RS232_IsDSREnabled(int);
-void RS232_enableDTR(int);
-void RS232_disableDTR(int);
-void RS232_enableRTS(int);
-void RS232_disableRTS(int);
-void RS232_flushRX(int);
-void RS232_flushTX(int);
-void RS232_flushRXTX(int);
-int RS232_GetPortnr(const char *);
+int  RS232_OpenComport(char *);
+int  RS232_SendByte(unsigned char);
+//int  RS232_ReadByte();
+void RS232_CloseComport();
+void RS232_cputs(const char *);
+void RS232_enableDTR();
+void RS232_disableDTR();
+void RS232_enableRTS();
+void RS232_disableRTS();
 
 #ifdef __cplusplus
 } /* extern "C" */

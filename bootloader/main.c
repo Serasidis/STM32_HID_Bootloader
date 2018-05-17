@@ -76,19 +76,24 @@ int main() {
 	led_init();
 	
 #if defined HAS_LED2_PIN
+
+
 	led2_off();
+
+
+
+
+
 #endif
 		
 	uploadStarted = false;
 	uploadFinished = false;
 	uint32_t userProgramAddress = *(volatile uint32_t *)(USER_PROGRAM + 0x04);
 	funct_ptr userProgram = (funct_ptr) userProgramAddress;
-	
-	// Turn GPIOA clock on
-	//bit_set(RCC->APB2ENR, RCC_APB2ENR_IOPAEN);
+
 
 	// Turn GPIOB clock on
-	//bit_set(RCC->APB2ENR, RCC_APB2ENR_IOPBEN);
+	bit_set(RCC->APB2ENR, RCC_APB2ENR_IOPBEN);
 
 	// Set B2 as Input Mode Floating
 	bit_clear(GPIOB->CRL, GPIO_CRL_MODE2);
@@ -100,6 +105,7 @@ int main() {
 	
 	// If PB2 (BOOT 1 pin) is HIGH enter HID bootloader or no User Code is uploaded to the MCU ...
 	if((GPIOB->IDR & GPIO_IDR_IDR2)||(checkUserCode(USER_CODE_FLASH0X8001000) == false)) {
+
 		USB_Init(HIDUSB_EPHandler, HIDUSB_Reset);
 	
 		while(check_flash_complete() == false){
