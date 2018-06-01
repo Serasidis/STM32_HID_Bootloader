@@ -68,11 +68,11 @@ int  RS232_OpenComport(char *);
 int  RS232_SendByte(unsigned char);
 //int  RS232_ReadByte();
 void RS232_CloseComport();
-void RS232_cputs(const char *);
 void RS232_enableDTR();
 void RS232_disableDTR();
 void RS232_enableRTS();
 void RS232_disableRTS();
+void RS232_send_magic();
 
 #ifdef __cplusplus
 } /* extern "C" */

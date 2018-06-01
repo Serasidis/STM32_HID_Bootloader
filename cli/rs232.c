@@ -79,6 +79,7 @@
     new_termios.c_cc[VLNEXT]   = 0;
     new_termios.c_cc[VEOL2]    = 0;
 
+
     if (cfsetispeed(&new_termios, B9600) != 0) {
         fprintf(stderr, "cfsetispeed(&new_termios, B9600) failed: %s\n", strerror(errno));
         return 1;
@@ -87,6 +88,7 @@
         fprintf(stderr, "cfsetospeed(&new_termios, B9600) failed: %s\n", strerror(errno));
         return 1;
     }
+
     if (tcsetattr(tty_fd, TCSANOW, &new_termios) != 0) {
         fprintf(stderr, "tcsetattr(fd, TCSANOW, &new_termios) failed: %s\n", strerror(errno));
         return 1;
@@ -191,6 +193,10 @@
    }
  }
 
+ void RS232_send_magic(){
+   write(tty_fd,"1EAF",4);
+ }
+
 
 #else  /* windows */
 
@@ -217,7 +223,7 @@ int RS232_OpenComport(char *comport)
 
   if(Cport==INVALID_HANDLE_VALUE)
   {
-    printf("unable to open comport\n");
+    printf("> unable to open comport\n");
     return(1);
   }
 
@@ -227,14 +233,14 @@ int RS232_OpenComport(char *comport)
 
   if(!BuildCommDCBA(mode_str_2, &port_settings))
   {
-    printf("unable to set comport dcb settings\n");
+    printf("> unable to set comport dcb settings\n");
     CloseHandle(Cport);
     return(1);
   }
 
   if(!SetCommState(Cport, &port_settings))
   {
-    printf("unable to set comport cfg settings\n");
+    printf("> unable to set comport cfg settings\n");
     CloseHandle(Cport);
     return(1);
   }
@@ -249,7 +255,7 @@ int RS232_OpenComport(char *comport)
 
   if(!SetCommTimeouts(Cport, &Cptimeouts))
   {
-    printf("unable to set comport time-out settings\n");
+    printf("> unable to set comport time-out settings\n");
     CloseHandle(Cport);
     return(1);
   }
@@ -297,10 +303,12 @@ void RS232_disableRTS()
   EscapeCommFunction(Cport, CLRRTS);
 }
 
+void RS232_send_magic()
+{
+  int n;
+
+  WriteFile(Cport, "1EAF", 4, (LPDWORD)((void *)&n), NULL);
+}
+
 #endif
 
-
-void RS232_cputs(const char *text)  /* sends a string to serial port */
-{
-  while(*text != 0)   RS232_SendByte(*(text++));
-}

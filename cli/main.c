@@ -65,7 +65,7 @@ int main(int argc, char *argv[]) {
 	setbuf(stdout, NULL);
 	
 	printf("\n+----------------------------------------------------------------------+\n");
-	printf  ("|         HID-Flash v1.4e - STM32 HID Bootloader Flash Tool            |\n");
+	printf  ("|         HID-Flash v1.4f - STM32 HID Bootloader Flash Tool            |\n");
 	printf  ("|     (c) 04/2018 - Bruno Freitas - http://www.brunofreitas.com/       |\n");
 	printf  ("|     (c) 04/2018 - Vassilis Serasidis - http://www.serasidis.gr/      |\n");
 	printf  ("|   Customized for STM32duino ecosystem - http://www.stm32duino.com/   |\n");
@@ -77,33 +77,34 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 	
-  serial_init(argv[2]);
+	serial_init(argv[2]);
 	hid_init();
-
+  printf("> Searching for F055:0001 HID device...\n");
 	handle = hid_open(0xF055, 0x0001, NULL);
 
 	if (!handle) {
-		printf("Unable to open the HID device.\n");
+		printf("> Unable to open the HID device.\n");
 		error = 1;
 		goto exit;
 	}
-
+  printf("> F055:0001 device is found !\n");
+  
 	firmware_file = fopen(argv[1], "rb");
 	if(!firmware_file) {
-		printf("Error opening firmware file: %s\n", argv[1]);
+		printf("> Error opening firmware file: %s\n", argv[1]);
 		error = 1;
 		goto exit;
 	}
 
 	// Send RESET PAGES command to put HID bootloader in initial stage...
-	memset(hid_buffer, 0, sizeof(hid_buffer));
+	memset(hid_buffer, 0, sizeof(hid_buffer)); //Fill the hid_buffer with zeros.
 	memcpy(&hid_buffer[1], CMD_RESET_PAGES, sizeof(CMD_RESET_PAGES));
 
-	printf("Sending <reset pages> command...\n");
+	printf("> Sending <reset pages> command...\n");
 
 	// Flash is unavailable when writing to it, so USB interrupt may fail here
 	if(!usb_write(handle, hid_buffer, 129)) {
-		printf("Error while sending <reset pages> command.\n");
+		printf("> Error while sending <reset pages> command.\n");
 		error = 1;
 		goto exit;
 	}
@@ -113,7 +114,7 @@ int main(int argc, char *argv[]) {
 	fseek(firmware_file, 0, SEEK_SET);
 
 	// Send Firmware File data
-	printf("Flashing firmware...\n");
+	printf("> Flashing firmware...\n");
 
 	memset(page_data, 0, sizeof(page_data));
 	read_bytes = fread(page_data, 1, sizeof(page_data), firmware_file);
@@ -130,7 +131,7 @@ int main(int argc, char *argv[]) {
 			usleep(5000);
 			// Flash is unavailable when writing to it, so USB interrupt may fail here
 			if(!usb_write(handle, hid_buffer, 129)) {
-				printf("Error while flashing firmware data.\n");
+				printf("> Error while flashing firmware data.\n");
 				error = 1;
 				goto exit;
 			}
@@ -140,17 +141,17 @@ int main(int argc, char *argv[]) {
 		read_bytes = fread(page_data, 1, sizeof(page_data), firmware_file);
 	}
 
-	printf("\nDone!\n");
+	printf("\n> Done!\n");
 	
  	// Send CMD_REBOOT_MCU command to reboot the microcontroller...
 	memset(hid_buffer, 0, sizeof(hid_buffer));
 	memcpy(&hid_buffer[1], CMD_REBOOT_MCU, sizeof(CMD_REBOOT_MCU));
 
-	printf("Sending <reboot mcu> command...\n");
+	printf("> Sending <reboot mcu> command...\n");
 
 	// Flash is unavailable when writing to it, so USB interrupt may fail here
 	if(!usb_write(handle, hid_buffer, 129)) {
-		printf("Error while sending <reboot mcu> command.\n");
+		printf("> Error while sending <reboot mcu> command.\n");
 	}
 	
 	exit:
@@ -169,11 +170,12 @@ int main(int argc, char *argv[]) {
 }
 
 int serial_init(char *argument) {
-  printf("Trying to open the comport...\n");
+
+  printf("> Trying to open the comport...\n");
   if(RS232_OpenComport(argument)){
     return(0);
   }
-	printf("Toggling DTR...\n");
+	printf("> Toggling DTR...\n");
 	RS232_disableRTS();
  	RS232_enableDTR();
 	usleep(50000L);
@@ -181,7 +183,7 @@ int serial_init(char *argument) {
 	usleep(50000L);
 	RS232_disableDTR();
 	usleep(50000L);
-	RS232_cputs("1EAF");
+	RS232_send_magic();
 	usleep(50000L);
 	RS232_disableRTS();
 	
