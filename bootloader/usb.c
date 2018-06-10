@@ -177,7 +177,7 @@ void USB_Init(void (*EPHandlerPtr)(uint16_t), void (*ResetHandlerPtr)(void)) {
 	_SetCNTR(0);
 
 	/* Wait until RESET flag = 1 (polling) */
-	while ((_GetISTR() & ISTR_RESET) == 1);
+	while (!(_GetISTR() & ISTR_RESET));
 
 	/*** Clear pending interrupts ***/
 	_SetISTR(0);
