@@ -79,15 +79,15 @@ int main(int argc, char *argv[]) {
 	
 	serial_init(argv[2]);
 	hid_init();
-  printf("> Searching for F055:0001 HID device...\n");
-	handle = hid_open(0xF055, 0x0001, NULL);
+  printf("> Searching for 1209:BEBA HID device...\n");
+	handle = hid_open(0x1209, 0xBEBA, NULL);
 
 	if (!handle) {
 		printf("> Unable to open the HID device.\n");
 		error = 1;
 		goto exit;
 	}
-  printf("> F055:0001 device is found !\n");
+  printf("> 1209:BEBA device is found !\n");
   
 	firmware_file = fopen(argv[1], "rb");
 	if(!firmware_file) {
