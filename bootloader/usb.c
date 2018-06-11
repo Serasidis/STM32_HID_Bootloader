@@ -31,11 +31,10 @@ void (*_USBResetHandler)(void) = NULL;
 
 /* USB String Descriptors */
 const uint8_t sdVendor[] = {
-	0x2A, // Size,
+	0x22, // Size,
 	0x03, // Descriptor type
-	'w', 0, 'w', 0, 'w', 0, '.', 0, 'b', 0, 'r', 0, 'u', 0, 'n', 0, 'o', 0,
-	'f', 0, 'r', 0, 'e', 0, 'i', 0, 't', 0, 'a', 0, 's', 0, '.', 0, 'c', 0,
-	'o', 0, 'm', 0
+	'w', 0, 'w', 0, 'w', 0, '.', 0, 's', 0, 'e', 0, 'r', 0, 'a', 0, 's', 0,
+	'i', 0, 'd', 0, 'i', 0, 's', 0, '.', 0, 'g', 0, 'r', 0
 };
 
 const uint8_t sdProduct[] = {
