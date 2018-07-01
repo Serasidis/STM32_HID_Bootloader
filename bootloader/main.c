@@ -48,7 +48,7 @@ void led2_on();
 void led2_off();
 #endif
 
-void led_init();
+void pins_init();
 void USB_Shutdown();
 void blink_led(uint16_t times);
 volatile uint32_t timeout = 0;
@@ -73,17 +73,13 @@ uint16_t get_and_clear_magic_word() {
 }
 
 int main() {
-	led_init();
-	
+	pins_init();
+  
+  // Wait 1uS so the pull-up settles...
+	delay(72);
+  
 #if defined HAS_LED2_PIN
-
-
 	led2_off();
-
-
-
-
-
 #endif
 		
 	uploadStarted = false;
@@ -91,18 +87,6 @@ int main() {
 	uint32_t userProgramAddress = *(volatile uint32_t *)(USER_PROGRAM + 0x04);
 	funct_ptr userProgram = (funct_ptr) userProgramAddress;
 
-
-	// Turn GPIOB clock on
-	bit_set(RCC->APB2ENR, RCC_APB2ENR_IOPBEN);
-
-	// Set B2 as Input Mode Floating
-	bit_clear(GPIOB->CRL, GPIO_CRL_MODE2);
-	bit_set(GPIOB->CRL, GPIO_CRL_CNF2_0);
-	bit_clear(GPIOB->CRL, GPIO_CRL_CNF2_1);
-
-	// Wait 1uS so the pull-up settles...
-	delay(72);
-	
 	// If PB2 (BOOT 1 pin) is HIGH enter HID bootloader or no User Code is uploaded to the MCU ...
 	if((GPIOB->IDR & GPIO_IDR_IDR2)||(checkUserCode(USER_CODE_FLASH0X8001000) == false)) {
 
