@@ -17,6 +17,8 @@
 	#define DISC_BIT_0			(GPIOB->CRH |= GPIO_CRH_CNF9_0) 
 	#define DISC_BIT_1			(GPIOB->CRH &= ~GPIO_CRH_CNF9_1)
 	#define DISC_MODE				(GPIOB->CRH |= GPIO_CRH_MODE9)
+  #define DISC_HIGH				(GPIOB->BSRR = GPIO_BSRR_BS9)
+	#define DISC_LOW				(GPIOB->BRR	= GPIO_BRR_BR9)
 
 	#define PB2_PULLDOWN    //Enable the internal pull-down on PB2 pin. By default, PB2 is in FLOATING input mode.
 

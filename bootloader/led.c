@@ -59,20 +59,19 @@ void pins_init() {
   DISC_BIT_0;
   DISC_BIT_1;
   DISC_MODE;
+  DISC_LOW;
 #endif
   
 #if defined PB2_PULLDOWN
   RCC->APB2ENR |= RCC_APB2ENR_IOPBEN; // Turn GPIOB clock on
-  GPIOB->CRL &= ~(GPIO_CRL_CNF0_0);
-  GPIOB->CRL |=  (GPIO_CRL_CNF0_1);
-  GPIOB->CRL &= ~(GPIO_CRL_MODE0_1);
-  GPIOB->CRL &= ~(GPIO_CRL_MODE0_0);
-  GPIOB->ODR &= ~(GPIO_ODR_ODR0);
+  GPIOB->CRL &= ~(GPIO_CRL_CNF2_0);
+  GPIOB->CRL |=  (GPIO_CRL_CNF2_1);
+  GPIOB->CRL &= ~(GPIO_CRL_MODE2);
+  GPIOB->ODR &= ~(GPIO_ODR_ODR2);
 #else //PB2 is in FLOATING mode.
   RCC->APB2ENR |= RCC_APB2ENR_IOPBEN; // Turn GPIOB clock on
   GPIOB->CRL &= ~GPIO_CRL_MODE2;
-  GPIOB->CRL &= ~(GPIO_CRL_MODE2_1);
-  GPIOB->CRL &= ~(GPIO_CRL_MODE2_0);
+  GPIOB->CRL &= ~(GPIO_CRL_MODE2);
 #endif
 
 }
