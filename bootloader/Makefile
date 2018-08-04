@@ -1,5 +1,5 @@
 TARGET = hid_bootloader
-
+FLASH  = st-flash
 DEVICE = STM32F10X_MD
 
 VECTOR_TABLE_OFFSET = 0x0000
@@ -48,6 +48,8 @@ GDB = arm-none-eabi-gdb
 ECHO = echo
 RM = rm
 
+program: $(TARGET).hex
+	$(FLASH) write $(TARGET).bin 0x8000000
 .PHONY: all build output info size clean flash
 
 all: $(SRCS) clean gccversion build output info size
@@ -143,16 +145,16 @@ copy_generic-pb12:
 $(TARGET).elf: $(OBJS)
 	$(CC) $(LDFLAGS) $(CFLAGS) $(OBJS) -o "$@"
 
-#.SECONDARY: $(OBJS)
+.SECONDARY: $(OBJS)
 
-#%.o: %.c
-#	$(CC) $(CFLAGS) -c "$<" -o "$@"
+%.o: %.c
+	$(CC) $(CFLAGS) -c "$<" -o "$@"
 
-#%.o: %.s
-#	$(AS) $(ASFLAGS) -c "$<" -o "$@"
+%.o: %.s
+	$(AS) $(ASFLAGS) -c "$<" -o "$@"
 
-#%.s : %.c
-#	$(CC) -S $(CFLAGS) $< -o $@
+%.s : %.c
+	$(CC) -S $(CFLAGS) $< -o $@
 
 output: $(TARGET).hex $(TARGET).bin
 

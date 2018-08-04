@@ -32,6 +32,7 @@
 #define MIN_PAGE 4
 
 static uint8_t CMD_SIGNATURE[] = {'B','T','L','D','C','M','D'};
+static uint8_t CMD_SEND_NEXT_DATA[] = {'B','T','L','D','C','M','D',2};
 
 static uint8_t pageData[1024];
 static volatile uint8_t currentPage = MIN_PAGE;
@@ -44,6 +45,7 @@ static USB_SetupPacket *SetupPacket;
 extern uint32_t timeout;
 extern bool uploadStarted;
 extern bool uploadFinished;
+extern bool send_next_data;
 
 /* buffer table base address */
 #define BTABLE_ADDRESS      (0x00)
@@ -68,7 +70,7 @@ static const uint8_t USB_DEVICE_DESC[] = {
 	0x08,        // bMaxPacketSize0 8
 	0x09, 0x12,  // idVendor 0x1209
 	0xBA, 0xBE,  // idProduct 0xBEBA
-	0x01, 0x00,  // bcdDevice 0.01
+	0x02, 0x00,  // bcdDevice 0.02
 	0x01,        // iManufacturer (String Index)
 	0x02,        // iProduct (String Index)
 	0x00,        // iSerialNumber (String Index)
@@ -117,15 +119,15 @@ static const uint8_t usbHidReportDescriptor[32] = {
 		0xA1, 0x01,        // Collection (Application)
 		0x09, 0x02,        //   Usage (0x02)
 		0x15, 0x00,        //   Logical Minimum (0)
-		0x25, 0xFF,        //   Logical Maximum (-1)
+		0x25, 0xFF,        //   Logical Maximum (255)
 		0x75, 0x08,        //   Report Size (8)
 		0x95, 0x08,        //   Report Count (8)
 		0x81, 0x02,        //   Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
 		0x09, 0x03,        //   Usage (0x03)
 		0x15, 0x00,        //   Logical Minimum (0)
-		0x25, 0xFF,        //   Logical Maximum (-1)
+		0x25, 0xFF,        //   Logical Maximum (255)
 		0x75, 0x08,        //   Report Size (8)
-		0x95, 0x80,        //   Report Count (128)
+		0x95, 0x40,        //   Report Count (64)
 		0x91, 0x02,        //   Output (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position,Non-volatile)
 		0xC0               // End Collection
 };
@@ -254,7 +256,7 @@ static void HIDUSB_WriteFlash(uint32_t page, uint8_t *data, uint16_t size) {
 static uint8_t HIDUSB_PacketIsCommand() {
 	uint8_t hasdata = 0;
 
-	for(int i = 8; i < 128; i++) {
+	for(int i = 8; i < 64; i++) {
 		hasdata |= pageData[i];
 	}
 
@@ -276,7 +278,7 @@ void HIDUSB_HandleData(uint8_t *data) {
 
 	currentPageOffset += 8;
 
-	if(currentPageOffset == 128) {
+	if(currentPageOffset == 64) {
 		if(HIDUSB_PacketIsCommand()) {
 			switch(pageData[7]) {
 			case 0x00: // Reset Page Command
@@ -304,7 +306,7 @@ void HIDUSB_HandleData(uint8_t *data) {
 
 			currentPage++;
 			currentPageOffset = 0;
-
+      USB_SendData(ENDP1, (uint16_t *) CMD_SEND_NEXT_DATA, sizeof(CMD_SEND_NEXT_DATA));
 			led_off();
 		}
 	}
@@ -390,6 +392,9 @@ void HIDUSB_EPHandler(uint16_t Status) {
 
 		_SetEPTxValid(EPn);
 		_ClearEP_CTR_TX(EPn);
+    if(EPn == ENDP1){
+      _SetEPTxStatus(ENDP1, EP_TX_NAK);
+    }
 	}
 }
 
