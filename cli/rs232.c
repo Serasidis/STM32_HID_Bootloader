@@ -202,7 +202,7 @@
 
 HANDLE Cport;
 
-char mode_str_2[] = "baud=9600 data=8 parity=n stop=1 dtr=on rts=on";
+char mode_str_2[] = "baud=9600 data=8 parity=n stop=1 dtr=off rts=off";
 
 int RS232_OpenComport(char *comport)
 {
