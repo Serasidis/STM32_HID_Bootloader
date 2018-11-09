@@ -74,7 +74,7 @@ typedef struct {
 	uint8_t bRequest;
 	USB_WByte wValue;
 	USB_WByte wIndex;
-	uint8_t wLength;
+	uint16_t wLength;
 } USB_SetupPacket;
 
 /* Includes ------------------------------------------------------------------*/
