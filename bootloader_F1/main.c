@@ -58,8 +58,6 @@ bool uploadStarted;
 bool uploadFinished;
 bool send_next_data = false;  
 
-static uint8_t CMD_SEND_NEXT_DATA[] = {'B','T','L','D','C','M','D',2}; 
-
 uint16_t get_and_clear_magic_word() {
 	bit_set(RCC->APB1ENR, RCC_APB1ENR_BKPEN | RCC_APB1ENR_PWREN); //Enable the power and backup interface clocks by setting the PWREN and BKPEN bitsin the RCC_APB1ENR register
 
