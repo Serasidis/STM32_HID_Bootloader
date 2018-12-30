@@ -36,6 +36,7 @@ CFLAGS += $(TARGETFLAGS)
 LDFLAGS += -Wl,-Map=$(TARGET).map,--cref
 LDFLAGS += -Wl,--gc-sections
 LDFLAGS += -Wl,--print-memory-usage
+LDFLAGS += -Wl,--no-wchar-size-warning
 LDFLAGS += -T$(LINKER_SCRIPT)
 
 CC = arm-none-eabi-gcc
