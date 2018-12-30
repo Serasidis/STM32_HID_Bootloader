@@ -11,6 +11,17 @@
 # ------------------------------------------------
 
 ######################################
+# verbosity
+######################################
+# Be silent per default, but 'make V=1' will show all compiler calls.
+# If you're insane, V=99 will print out all sorts of things.
+V?=0
+ifeq ($(V),0)
+Q	:= @
+NULL	:= 2>/dev/null
+endif
+
+######################################
 # target
 ######################################
 TARGET = HID_Bootloader_F4
@@ -90,7 +101,8 @@ SZ = $(PREFIX)size
 endif
 HEX = $(CP) -O ihex
 BIN = $(CP) -O binary -S
- 
+ECHO = @echo
+
 #######################################
 # CFLAGS
 #######################################
@@ -170,30 +182,36 @@ OBJECTS += $(addprefix $(BUILD_DIR)/,$(notdir $(ASM_SOURCES:.s=.o)))
 vpath %.s $(sort $(dir $(ASM_SOURCES)))
 
 $(BUILD_DIR)/%.o: %.c Makefile | $(BUILD_DIR) 
-	$(CC) -c $(CFLAGS) -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.c=.lst)) $< -o $@
+	$(ECHO) "CC      $<"
+	$(Q)$(CC) -c $(CFLAGS) -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.c=.lst)) $< -o $@
 
 $(BUILD_DIR)/%.o: %.s Makefile | $(BUILD_DIR)
-	$(AS) -c $(CFLAGS) $< -o $@
+	$(ECHO) "AS      $<"
+	$(Q)$(AS) -c $(CFLAGS) $< -o $@
 
 $(BUILD_DIR)/$(TARGET).elf: $(OBJECTS) Makefile
-	$(CC) $(OBJECTS) $(LDFLAGS) -o $@
-	$(SZ) $@
+	$(ECHO) "LD      $<"
+	$(Q)$(CC) $(OBJECTS) $(LDFLAGS) -o $@
+	$(Q)$(SZ) $@
 
 $(BUILD_DIR)/%.hex: $(BUILD_DIR)/%.elf | $(BUILD_DIR)
-	$(HEX) $< $@
+	$(ECHO) "GENHEX  $@"
+	$(Q)$(HEX) $< $@
 
 $(BUILD_DIR)/%.bin: $(BUILD_DIR)/%.elf | $(BUILD_DIR)
-	$(BIN) $< $@	
+	$(ECHO) "GENBIN  $@"
+	$(Q)$(BIN) $< $@
 
 $(BUILD_DIR):
-	mkdir $@		
+	$(Q)mkdir $@		
 
 #######################################
 # clean up
 #######################################
 clean:
-	-rm -fR $(BUILD_DIR)
- 
+	$(ECHO) "CLEAN"
+	-$(Q)rm -fR $(BUILD_DIR)
+
 #######################################
 # dependencies
 #######################################

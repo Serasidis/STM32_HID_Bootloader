@@ -9,6 +9,14 @@ C_SRCS = Src/main.c Src/usb.c Src/hid.c Src/led.c
 DEVICE_ASM_SRCS += CMSIS/Device/ST/STM32F10x/Source/Templates/gcc/startup_stm32f10x_md.s
 DEVICE_C_SRCS += CMSIS/Device/ST/STM32F10x/Source/Templates/system_stm32f10x.c
 
+# Be silent per default, but 'make V=1' will show all compiler calls.
+# If you're insane, V=99 will print out all sorts of things.
+V?=0
+ifeq ($(V),0)
+Q	:= @
+NULL	:= 2>/dev/null
+endif
+
 INCLUDE_DIRS += -I Inc
 INCLUDE_DIRS += -I CMSIS/Device/ST/STM32F10x/Include 
 INCLUDE_DIRS += -I CMSIS/Include
@@ -52,7 +60,8 @@ OBJCOPY = $(PREFIX)objcopy
 SIZE = $(PREFIX)size
 GDB = $(PREFIX)gdb
 
-ECHO = echo
+ECHO = @echo
+CP = cp
 MKDIR = mkdir
 RM = rm
 RMDIR = rmdir
@@ -64,7 +73,7 @@ program: $(BUILD_DIR)/$(TARGET).hex
 	$(FLASH) write $(BUILD_DIR)/$(TARGET).bin 0x8000000
 .PHONY: all build output info size clean flash
 
-all: $(SRCS) clean gccversion build output info size
+all: $(SRCS) clean gccversion output info size
 
 maple-mini: $(SRCS) clean gccversion build_maple-mini copy_maple_mini info size
 generic-pc13: $(SRCS) clean gccversion build_generic-pc13 copy_generic-pc13 info size
@@ -79,118 +88,137 @@ generic-pb7: $(SRCS) clean gccversion build_generic-pb7 copy_generic-pb7 info si
 generic-pb0: $(SRCS) clean gccversion build_generic-pb0 copy_generic-pb0 info size
 generic-pb12: $(SRCS) clean gccversion build_generic-pb12 copy_generic-pb12 info size
 
-build: $(BUILD_DIR)/$(TARGET).elf
-
 build_maple-mini: TARGETFLAGS= -DTARGET_MAPLE_MINI
 build_maple-mini: LINKER_SCRIPT=STM32F103CBT6.ld
 build_maple-mini: $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).bin
 copy_maple_mini: $(BIN_DIR)
-	cp $(BUILD_DIR)/$(TARGET).bin $(BIN_DIR)/hid_maple_mini.bin
+	$(ECHO) "COPY    $(BIN_DIR)/hid_maple_mini.bin"
+	$(Q)$(CP) $(BUILD_DIR)/$(TARGET).bin $(BIN_DIR)/hid_maple_mini.bin
 
 build_generic-pc13: TARGETFLAGS= -DTARGET_GENERIC_F103_PC13
 build_generic-pc13: LINKER_SCRIPT=STM32F103C8T6.ld
 build_generic-pc13: $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).bin
 copy_generic-pc13: $(BIN_DIR)
-	cp $(BUILD_DIR)/$(TARGET).bin $(BIN_DIR)/hid_generic_pc13.bin
+	$(ECHO) "COPY    $(BIN_DIR)/hid_generic_pc13.bin"
+	$(Q)$(CP) $(BUILD_DIR)/$(TARGET).bin $(BIN_DIR)/hid_generic_pc13.bin
 
 build_generic-pd2: TARGETFLAGS= -DTARGET_GENERIC_F103_PD2
 build_generic-pd2: LINKER_SCRIPT=STM32F103C8T6.ld
 build_generic-pd2: $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).bin
 copy_generic-pd2: $(BIN_DIR)
-	cp $(BUILD_DIR)/$(TARGET).bin $(BIN_DIR)/hid_generic_pd2.bin
+	$(ECHO) "COPY    $(BIN_DIR)/hid_generic_pd2.bin"
+	$(Q)$(CP) $(BUILD_DIR)/$(TARGET).bin $(BIN_DIR)/hid_generic_pd2.bin
 
 build_generic-pd1: TARGETFLAGS= -DTARGET_GENERIC_F103_PD1
 build_generic-pd1: LINKER_SCRIPT=STM32F103C8T6.ld
 build_generic-pd1: $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).bin
 copy_generic-pd1: $(BIN_DIR)
-	cp $(BUILD_DIR)/$(TARGET).bin $(BIN_DIR)/hid_generic_pd1.bin
+	$(ECHO) "COPY    $(BIN_DIR)/hid_generic_pd1.bin"
+	$(Q)$(CP) $(BUILD_DIR)/$(TARGET).bin $(BIN_DIR)/hid_generic_pd1.bin
 
 build_generic-pa1: TARGETFLAGS= -DTARGET_GENERIC_F103_PA1
 build_generic-pa1: LINKER_SCRIPT=STM32F103C8T6.ld
 build_generic-pa1: $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).bin
 copy_generic-pa1: $(BIN_DIR)
-	cp $(BUILD_DIR)/$(TARGET).bin $(BIN_DIR)/hid_generic_pa1.bin
+	$(ECHO) "COPY    $(BIN_DIR)/hid_generic_pa1.bin"
+	$(Q)$(CP) $(BUILD_DIR)/$(TARGET).bin $(BIN_DIR)/hid_generic_pa1.bin
 
 build_generic-pb9: TARGETFLAGS= -DTARGET_GENERIC_F103_PB9
 build_generic-pb9: LINKER_SCRIPT=STM32F103C8T6.ld
 build_generic-pb9: $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).bin
 copy_generic-pb9: $(BIN_DIR)
-	cp $(BUILD_DIR)/$(TARGET).bin $(BIN_DIR)/hid_generic_pb9.bin
+	$(ECHO) "COPY    $(BIN_DIR)/hid_generic_pb9.bin"
+	$(Q)$(CP) $(BUILD_DIR)/$(TARGET).bin $(BIN_DIR)/hid_generic_pb9.bin
 
 build_generic-pe2: TARGETFLAGS= -DTARGET_GENERIC_F103_PE2
 build_generic-pe2: LINKER_SCRIPT=STM32F103C8T6.ld
 build_generic-pe2: $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).bin
 copy_generic-pe2: $(BIN_DIR)
-	cp $(BUILD_DIR)/$(TARGET).bin $(BIN_DIR)/hid_generic_pe2.bin
+	$(ECHO) "COPY    $(BIN_DIR)/hid_generic_pe2.bin"
+	$(Q)$(CP) $(BUILD_DIR)/$(TARGET).bin $(BIN_DIR)/hid_generic_pe2.bin
 
 build_generic-pa9: TARGETFLAGS= -DTARGET_GENERIC_F103_PA9
 build_generic-pa9: LINKER_SCRIPT=STM32F103C8T6.ld
 build_generic-pa9: $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).bin
 copy_generic-pa9: $(BIN_DIR)
-	cp $(BUILD_DIR)/$(TARGET).bin $(BIN_DIR)/hid_generic_pa9.bin
+	$(ECHO) "COPY    $(BIN_DIR)/hid_generic_pa9.bin"
+	$(Q)$(CP) $(BUILD_DIR)/$(TARGET).bin $(BIN_DIR)/hid_generic_pa9.bin
 
 build_generic-pe5: TARGETFLAGS= -DTARGET_GENERIC_F103_PE5
 build_generic-pe5: LINKER_SCRIPT=STM32F103C8T6.ld
 build_generic-pe5: $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).bin
 copy_generic-pe5: $(BIN_DIR)
-	cp $(BUILD_DIR)/$(TARGET).bin $(BIN_DIR)/hid_generic_pe5.bin
+	$(ECHO) "COPY    $(BIN_DIR)/hid_generic_pe5.bin"
+	$(Q)$(CP) $(BUILD_DIR)/$(TARGET).bin $(BIN_DIR)/hid_generic_pe5.bin
 
 build_generic-pb7: TARGETFLAGS= -DTARGET_GENERIC_F103_PB7
 build_generic-pb7: LINKER_SCRIPT=STM32F103C8T6.ld
 build_generic-pb7: $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).bin
 copy_generic-pb7: $(BIN_DIR)
-	cp $(BUILD_DIR)/$(TARGET).bin $(BIN_DIR)/hid_generic_pb7.bin
+	$(ECHO) "COPY    $(BIN_DIR)/hid_generic_pb7.bin"
+	$(Q)$(CP) $(BUILD_DIR)/$(TARGET).bin $(BIN_DIR)/hid_generic_pb7.bin
 
 build_generic-pb0: TARGETFLAGS= -DTARGET_GENERIC_F103_PB0
 build_generic-pb0: LINKER_SCRIPT=STM32F103C8T6.ld
 build_generic-pb0: $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).bin
 copy_generic-pb0: $(BIN_DIR)
-	cp $(BUILD_DIR)/$(TARGET).bin $(BIN_DIR)/hid_generic_pb0.bin
+	$(ECHO) "COPY    $(BIN_DIR)/hid_generic_pb0.bin"
+	$(Q)$(CP) $(BUILD_DIR)/$(TARGET).bin $(BIN_DIR)/hid_generic_pb0.bin
 
 build_generic-pb12: TARGETFLAGS= -DTARGET_GENERIC_F103_PB12
 build_generic-pb12: LINKER_SCRIPT=STM32F103C8T6.ld
 build_generic-pb12: $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).bin
 copy_generic-pb12: $(BIN_DIR)
-	cp $(BUILD_DIR)/$(TARGET).bin $(BIN_DIR)/hid_generic_pb12.bin
+	$(ECHO) "COPY    $(BIN_DIR)/hid_generic_pb12.bin"
+	$(Q)$(CP) $(BUILD_DIR)/$(TARGET).bin $(BIN_DIR)/hid_generic_pb12.bin
 
 
 $(BUILD_DIR)/$(TARGET).elf: $(OBJS)
-	$(CC) $(LDFLAGS) $(CFLAGS) $(OBJS) -o "$@"
+	$(ECHO) "LD      $<"
+	$(Q)$(CC) $(LDFLAGS) $(CFLAGS) $(OBJS) -o "$@"
 
 .SECONDARY: $(OBJS)
 
 $(BUILD_DIR)/%.o: %.c Makefile | $(BUILD_DIR)
-	$(CC) $(CFLAGS) -c "$<" -o "$@"
+	$(ECHO) "CC      $<"
+	$(Q)$(CC) $(CFLAGS) -c "$<" -o "$@"
 
 $(BUILD_DIR)/%.o: %.s Makefile | $(BUILD_DIR)
-	$(AS) $(ASFLAGS) -c "$<" -o "$@"
+	$(ECHO) "AS      $<"
+	$(Q)$(AS) $(ASFLAGS) -c "$<" -o "$@"
 
 $(BUILD_DIR)/%.s : %.c
-	$(CC) -S $(CFLAGS) $< -o $@
+	$(ECHO) "CC      $<"
+	$(Q)$(CC) -S $(CFLAGS) $< -o $@
 
 output: $(BUILD_DIR)/$(TARGET).hex $(BUILD_DIR)/$(TARGET).bin
 
 $(BUILD_DIR)/$(TARGET).hex: $(BUILD_DIR)/$(TARGET).elf
-	$(OBJCOPY) -O ihex $< $@
+	$(ECHO) "GENHEX  $@"
+	$(Q)$(OBJCOPY) -O ihex $< $@
 
 $(BUILD_DIR)/$(TARGET).bin: $(BUILD_DIR)/$(TARGET).elf
-	$(OBJCOPY) -O binary $< $@
+	$(ECHO) "GENBIN  $@"
+	$(Q)$(OBJCOPY) -O binary $< $@
 
 gccversion:
 	@$(CC) --version
 
 info: $(BUILD_DIR)/$(TARGET).elf
-	$(OBJDUMP) -x -S $(BUILD_DIR)/$(TARGET).elf > $(BUILD_DIR)/$(TARGET).lst
-	$(OBJDUMP) -D $(BUILD_DIR)/$(TARGET).elf > $(BUILD_DIR)/$(TARGET).dis
-	$(SIZE) $(BUILD_DIR)/$(TARGET).elf > $(BUILD_DIR)/$(TARGET).size
+	$(ECHO) "INFO    $<"
+	$(Q)$(OBJDUMP) -x -S $(BUILD_DIR)/$(TARGET).elf > $(BUILD_DIR)/$(TARGET).lst
+	$(Q)$(OBJDUMP) -D $(BUILD_DIR)/$(TARGET).elf > $(BUILD_DIR)/$(TARGET).dis
+	$(Q)$(SIZE) $(BUILD_DIR)/$(TARGET).elf > $(BUILD_DIR)/$(TARGET).size
 
 size: $(BUILD_DIR)/$(TARGET).elf
-	$(SIZE) $(BUILD_DIR)/$(TARGET).elf
+	$(ECHO) "SIZE    $<"
+	$(Q)$(SIZE) $(BUILD_DIR)/$(TARGET).elf
 
 $(BUILD_DIR):
 	$(MKDIR) $@
 
 clean:
+	$(ECHO) "CLEAN"
 	$(RM) -f $(BUILD_DIR)/$(TARGET).elf
 	$(RM) -f $(BUILD_DIR)/$(TARGET).bin
 	$(RM) -f $(BUILD_DIR)/$(TARGET).hex
