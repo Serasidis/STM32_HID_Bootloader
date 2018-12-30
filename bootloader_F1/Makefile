@@ -39,13 +39,15 @@ LDFLAGS += -Wl,--print-memory-usage
 LDFLAGS += -Wl,--no-wchar-size-warning
 LDFLAGS += -T$(LINKER_SCRIPT)
 
-CC = arm-none-eabi-gcc
-AS = arm-none-eabi-as
-LD = arm-none-eabi-ld
-OBJDUMP = arm-none-eabi-objdump
-OBJCOPY = arm-none-eabi-objcopy
-SIZE = arm-none-eabi-size
-GDB = arm-none-eabi-gdb
+# Tool paths.
+PREFIX	?= arm-none-eabi-
+CC = $(PREFIX)gcc
+AS = $(PREFIX)as
+LD = $(PREFIX)ld
+OBJDUMP = $(PREFIX)objdump
+OBJCOPY = $(PREFIX)objcopy
+SIZE = $(PREFIX)size
+GDB = $(PREFIX)gdb
 
 ECHO = echo
 RM = rm
