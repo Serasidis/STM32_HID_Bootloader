@@ -24,6 +24,7 @@ OBJS = $(addsuffix .o,  $(basename $(SRCS)))
 ASFLAGS += -mcpu=cortex-m3 -mthumb
 
 CFLAGS += -mcpu=cortex-m3 -mthumb -Wall -Os
+CFLAGS += -std=gnu99
 CFLAGS += -fno-common -static
 CFLAGS += -ffunction-sections -fdata-sections
 CFLAGS += -specs=nano.specs -specs=nosys.specs
