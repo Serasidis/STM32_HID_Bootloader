@@ -28,6 +28,8 @@ CFLAGS += -std=gnu99
 CFLAGS += -fno-common -static
 CFLAGS += -ffunction-sections -fdata-sections
 CFLAGS += -specs=nano.specs -specs=nosys.specs
+CFLAGS += -Wextra -Wshadow -Wno-unused-variable -Wimplicit-function-declaration
+CFLAGS += -Wredundant-decls -Wstrict-prototypes -Wmissing-prototypes
 CFLAGS += $(INCLUDE_DIRS)
 CFLAGS += -D$(DEVICE)
 CFLAGS += -DVECTOR_TABLE_OFFSET=$(VECTOR_TABLE_OFFSET)

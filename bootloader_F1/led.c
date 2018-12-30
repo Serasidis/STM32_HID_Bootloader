@@ -18,28 +18,29 @@
 
 #include <stm32f10x.h>
 #include "config.h"
+#include "led.h"
 
 #if defined HAS_LED1_PIN	
-void led_off() {
+void led_off(void) {
   LED1_OFF;
 }
 
-void led_on() {
+void led_on(void) {
   LED1_ON;
 }
 #endif
 
 #if defined HAS_LED2_PIN	
-void led2_off() {
+void led2_off(void) {
   LED2_OFF;
 }
 
-void led2_on() {
+void led2_on(void) {
   LED2_ON;
 }
 #endif
 
-void pins_init() {
+void pins_init(void) {
 #if defined HAS_LED1_PIN	
   LED1_CLOCK_EN;
   LED1_BIT_0;

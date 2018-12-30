@@ -29,7 +29,7 @@
 #include "config.h"
 #include "hid.h"
 #include "bitwise.h"
-
+#include "led.h"
 
 // HID Bootloader takes 4 kb flash.
 #define USER_PROGRAM 0x08001000
@@ -38,18 +38,6 @@
 typedef void (*funct_ptr)(void);
 void delay(uint32_t tmr);
 
-#if defined HAS_LED1_PIN
-void led_on();
-void led_off();
-#endif
-
-#if defined HAS_LED2_PIN
-void led2_on();
-void led2_off();
-#endif
-
-void pins_init();
-void USB_Shutdown();
 void blink_led(uint16_t times);
 volatile uint32_t timeout = 0;
 bool checkUserCode(u32 usrAddr);
@@ -58,7 +46,7 @@ bool uploadStarted;
 bool uploadFinished;
 bool send_next_data = false;  
 
-uint16_t get_and_clear_magic_word() {
+static uint16_t get_and_clear_magic_word(void) {
 	bit_set(RCC->APB1ENR, RCC_APB1ENR_BKPEN | RCC_APB1ENR_PWREN); //Enable the power and backup interface clocks by setting the PWREN and BKPEN bitsin the RCC_APB1ENR register
 
 	uint16_t value = BKP->DR10;
@@ -73,7 +61,11 @@ uint16_t get_and_clear_magic_word() {
 	return value;
 }
 
-int main() {
+int main(int argc, char *argv[]) {
+
+	(void) argc;
+	(void) argv;
+
 	pins_init();
   
   // Wait 1uS so the pull-up settles...

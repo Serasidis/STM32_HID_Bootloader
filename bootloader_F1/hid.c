@@ -132,7 +132,7 @@ static const uint8_t usbHidReportDescriptor[32] = {
 		0xC0               // End Collection
 };
 
-void HIDUSB_Reset() {
+void HIDUSB_Reset(void) {
 
 	//led_init();
 	//led_off();
@@ -166,7 +166,7 @@ void HIDUSB_Reset() {
 	_SetDADDR(0 | DADDR_EF); /* set device address and enable function */
 }
 
-void HIDUSB_GetDescriptor(USB_SetupPacket *SPacket) {
+static void HIDUSB_GetDescriptor(USB_SetupPacket *SPacket) {
 
 	switch (SPacket->wValue.H) {
 		case USB_DEVICE_DESC_TYPE:
@@ -216,12 +216,12 @@ void HIDUSB_GetDescriptor(USB_SetupPacket *SPacket) {
 	}
 }
 
-static void HIDUSB_FlashUnlock() {
+static void HIDUSB_FlashUnlock(void) {
 	FLASH->KEYR = FLASH_KEY1;
 	FLASH->KEYR = FLASH_KEY2;
 }
 
-static void HIDUSB_FlashLock() {
+static void HIDUSB_FlashLock(void) {
 	bit_set(FLASH->CR, FLASH_CR_LOCK);
 }
 
@@ -253,7 +253,7 @@ static void HIDUSB_WriteFlash(uint32_t page, uint8_t *data, uint16_t size) {
 	bit_clear(FLASH->CR, FLASH_CR_PG);
 }
 
-static uint8_t HIDUSB_PacketIsCommand() {
+static uint8_t HIDUSB_PacketIsCommand(void) {
 	uint8_t hasdata = 0;
 
 	for(int i = 8; i < 64; i++) {
@@ -271,7 +271,7 @@ static uint8_t HIDUSB_PacketIsCommand() {
 	return 0;
 }
 
-void HIDUSB_HandleData(uint8_t *data) {
+static void HIDUSB_HandleData(uint8_t *data) {
 	uint32_t pageAddress;
 
 	memcpy(pageData + currentPageOffset, data, 8);
@@ -399,5 +399,7 @@ void HIDUSB_EPHandler(uint16_t Status) {
 }
 
 __attribute__((weak)) void HIDUSB_DataReceivedHandler(uint16_t *Data, uint16_t Length) {
+	(void) Data;
+	(void) Length;
 }
 

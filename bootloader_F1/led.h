@@ -20,15 +20,15 @@
 #define LED_H_
 
 #if defined HAS_LED1_PIN	
-void led_on();
-void led_off();
+void led_on(void);
+void led_off(void);
 #endif	
 
 #if defined HAS_LED2_PIN	
-void led2_on();
-void led2_off();
+void led2_on(void);
+void led2_off(void);
 #endif
 
-void led_init();
+void pins_init(void);
 
 #endif /* LED_H_ */

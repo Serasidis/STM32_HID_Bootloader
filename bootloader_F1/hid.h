@@ -19,7 +19,7 @@
 #ifndef HID_H_
 #define HID_H_
 
-void HIDUSB_Reset();
+void HIDUSB_Reset(void);
 void HIDUSB_EPHandler(uint16_t Status);
 
 __attribute__((weak)) void HIDUSB_DataReceivedHandler(uint16_t *Data,

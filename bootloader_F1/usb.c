@@ -26,8 +26,11 @@ USB_RxTxBuf_t RxTxBuffer[MAX_EP_NUM];
 
 volatile uint8_t DeviceAddress = 0;
 volatile uint16_t DeviceConfigured = 0, DeviceStatus = 0;
-void (*_EPHandler)(uint16_t) = NULL;
-void (*_USBResetHandler)(void) = NULL;
+
+void USB_LP_CAN1_RX0_IRQHandler(void);
+
+static void (*_EPHandler)(uint16_t) = NULL;
+static void (*_USBResetHandler)(void) = NULL;
 
 /* USB String Descriptors */
 const uint8_t sdVendor[] = {
@@ -106,7 +109,7 @@ void USB_SendData(uint8_t EPn, uint16_t *Data, uint16_t Length) {
 	_SetEPTxValid(EPn);
 }
 
-void USB_Shutdown() {
+void USB_Shutdown(void) {
 	bit_set(RCC->APB2ENR, RCC_APB2ENR_IOPAEN);
 
 	// Disable USB IRQ
@@ -136,7 +139,7 @@ void USB_Shutdown() {
 	bit_clear(RCC->APB1ENR, RCC_APB1ENR_USBEN);
 }
 
-static void USB_TurnOn() {
+static void USB_TurnOn(void) {
 	bit_set(RCC->APB2ENR, RCC_APB2ENR_IOPAEN);
 
 	// PA_12 output mode: General purpose Input Float (b01)
@@ -185,11 +188,11 @@ void USB_Init(void (*EPHandlerPtr)(uint16_t), void (*ResetHandlerPtr)(void)) {
 	_SetCNTR(CNTR_RESETM | CNTR_SUSPM | CNTR_WKUPM);
 }
 
-uint16_t USB_IsDeviceConfigured() {
+uint16_t USB_IsDeviceConfigured(void) {
 	return DeviceConfigured;
 }
 
-void USB_LP_CAN1_RX0_IRQHandler() {
+void USB_LP_CAN1_RX0_IRQHandler(void) {
 	// Handle Reset
 	if (_GetISTR() & ISTR_RESET) {
 		_SetISTR(_GetISTR() & CLR_RESET);
