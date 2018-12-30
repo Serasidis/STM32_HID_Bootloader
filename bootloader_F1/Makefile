@@ -4,22 +4,23 @@ DEVICE = STM32F10X_MD
 
 VECTOR_TABLE_OFFSET = 0x0000
 
-SRCS = main.c usb.c hid.c led.c
+C_SRCS = main.c usb.c hid.c led.c
 
-DEVICE_SRCS += CMSIS/Device/ST/STM32F10x/Source/Templates/gcc/startup_stm32f10x_md.s
-DEVICE_SRCS += system_stm32f10x.c
+DEVICE_ASM_SRCS += CMSIS/Device/ST/STM32F10x/Source/Templates/gcc/startup_stm32f10x_md.s
+DEVICE_C_SRCS += CMSIS/Device/ST/STM32F10x/Source/Templates/system_stm32f10x.c
 
 INCLUDE_DIRS += -I .
 INCLUDE_DIRS += -I CMSIS/Device/ST/STM32F10x/Include 
 INCLUDE_DIRS += -I CMSIS/Include
 
-#LINKER_SCRIPT = STM32F103C8T6.ld
-#TARGETFLAGS= -DTARGET_GENERIC_F103_PC13
-#LINKER_SCRIPT = STM32F103CBT6.ld
-#TARGETFLAGS= -DTARGET_MAPLE_MINI
-
-SRCS += $(DEVICE_SRCS)
-OBJS = $(addsuffix .o,  $(basename $(SRCS)))
+C_SRCS += $(DEVICE_C_SRCS)
+SRCS += $(C_SRCS)
+vpath %.c $(sort $(dir $(C_SRCS)))
+OBJS = $(notdir $(C_SRCS:.c=.o))
+ASM_SRCS += $(DEVICE_ASM_SRCS)
+SRCS += $(ASM_SRCS)
+vpath %.s $(sort $(dir $(DEVICE_ASM_SRCS)))
+OBJS += $(notdir $(DEVICE_ASM_SRCS:.s=.o))
 
 ASFLAGS += -mcpu=cortex-m3 -mthumb
 
