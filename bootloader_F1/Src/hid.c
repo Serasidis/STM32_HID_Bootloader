@@ -412,11 +412,7 @@ void HIDUSB_EPHandler(uint16_t Status) {
 			DeviceAddress = 0;
 		}
 
-		if (RxTxBuffer[EPn].TXL) { // Have to transmit something?
-			USB_Buffer2PMA(EPn);
-		} else {
-			_SetEPTxCount(EPn, 0);
-		}
+		USB_Buffer2PMA(EPn);
 
 		_SetEPTxValid(EPn);
 		_ClearEP_CTR_TX(EPn);

@@ -51,6 +51,9 @@ void USB_Buffer2PMA(uint8_t EPn) {
 	Count = RxTxBuffer[EPn].TXL <= RxTxBuffer[EPn].MaxPacketSize ? RxTxBuffer[EPn].TXL : RxTxBuffer[EPn].MaxPacketSize;
 	_SetEPTxCount(EPn, Count);
 
+	if (Count == 0) {
+		return;
+	}
 	Destination = (uint32_t *) (PMAAddr + _GetEPTxAddr(EPn) * 2);
 
 	for (uint8_t i = 0; i < (Count + 1) / 2; i++) {
@@ -72,11 +75,7 @@ void USB_SendData(uint8_t EPn, uint16_t *Data, uint16_t Length) {
 
 	RxTxBuffer[EPn].TXB = Data;
 
-	if (Length > 0) {
-		USB_Buffer2PMA(EPn);
-	} else {
-		_SetEPTxCount(EPn, 0);
-	}
+	USB_Buffer2PMA(EPn);
 
 	_SetEPTxValid(EPn);
 }
@@ -91,11 +90,10 @@ void USB_Shutdown(void) {
 	DeviceConfigured = DeviceStatus = 0;
 
 	_EPHandler = NULL;
-
 	_USBResetHandler = NULL;
 
-	// Turn USB Macrocell off (FRES + PWDN)
-	_SetCNTR(0x03);
+	// Turn USB Macrocell off
+	_SetCNTR(CNTR_FRES|CNTR_PDWN);
 
 	// PA_12 output mode: General purpose output open drain (b01)
 	bit_set(GPIOA->CRH, GPIO_CRH_CNF12_0);
@@ -111,17 +109,6 @@ void USB_Shutdown(void) {
 	bit_clear(RCC->APB1ENR, RCC_APB1ENR_USBEN);
 }
 
-static void USB_TurnOn(void) {
-	bit_set(RCC->APB2ENR, RCC_APB2ENR_IOPAEN);
-
-	// PA_12 output mode: General purpose Input Float (b01)
-	bit_set(GPIOA->CRH, GPIO_CRH_CNF12_0);
-	bit_clear(GPIOA->CRH, GPIO_CRH_CNF12_1);
-
-	// Set PA_12 to Input mode
-	bit_clear(GPIOA->CRH, GPIO_CRH_MODE12);
-}
-
 void USB_Init(void (*EPHandlerPtr)(uint16_t), void (*ResetHandlerPtr)(void)) {
 
 	// Reset RX and TX lengths inside RxTxBuffer struct for all endpoints
@@ -132,7 +119,14 @@ void USB_Init(void (*EPHandlerPtr)(uint16_t), void (*ResetHandlerPtr)(void)) {
 	_EPHandler = EPHandlerPtr;
 	_USBResetHandler = ResetHandlerPtr;
 
-	USB_TurnOn();
+	bit_set(RCC->APB2ENR, RCC_APB2ENR_IOPAEN);
+
+	// PA_12 output mode: General purpose Input Float (b01)
+	bit_set(GPIOA->CRH, GPIO_CRH_CNF12_0);
+	bit_clear(GPIOA->CRH, GPIO_CRH_CNF12_1);
+
+	// Set PA_12 to Input mode
+	bit_clear(GPIOA->CRH, GPIO_CRH_MODE12);
 
 	DeviceConfigured = DeviceStatus = 0;
 
