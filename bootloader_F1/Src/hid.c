@@ -23,6 +23,7 @@
 #include "usb.h"
 #include "hid.h"
 #include "led.h"
+#include "flash.h"
 #include "bitwise.h"
 
 // This should be <= MAX_EP_NUM defined in usb.h
@@ -244,43 +245,6 @@ static void HIDUSB_GetDescriptor(USB_SetupPacket *SPacket) {
 	}
 }
 
-static void HIDUSB_FlashUnlock(void) {
-	FLASH->KEYR = FLASH_KEY1;
-	FLASH->KEYR = FLASH_KEY2;
-}
-
-static void HIDUSB_FlashLock(void) {
-	bit_set(FLASH->CR, FLASH_CR_LOCK);
-}
-
-static void HIDUSB_FormatFlashPage(uint32_t page) {
-	while(FLASH->SR & FLASH_SR_BSY);
-
-	bit_set(FLASH->CR, FLASH_CR_PER);
-
-	FLASH->AR = page;
-
-	bit_set(FLASH->CR, FLASH_CR_STRT);
-
-	while(FLASH->SR & FLASH_SR_BSY);
-
-	bit_clear(FLASH->CR, FLASH_CR_PER);
-}
-
-static void HIDUSB_WriteFlash(uint32_t page, uint8_t *data, uint16_t size) {
-	while(FLASH->SR & FLASH_SR_BSY);
-
-	bit_set(FLASH->CR, FLASH_CR_PG);
-
-	for(uint16_t i = 0; i < size; i += 2) {
-		*(volatile uint16_t *)(page + i) = *(uint16_t *)(data + i);
-
-		while(FLASH->SR & FLASH_SR_BSY);
-	}
-
-	bit_clear(FLASH->CR, FLASH_CR_PG);
-}
-
 static uint8_t HIDUSB_PacketIsCommand(void) {
 	uint8_t hasdata = 0;
 
@@ -327,10 +291,7 @@ static void HIDUSB_HandleData(uint8_t *data) {
 
 			pageAddress = 0x08000000 + (currentPage * 1024);
 
-			HIDUSB_FlashUnlock();
-			HIDUSB_FormatFlashPage(pageAddress);
-			HIDUSB_WriteFlash(pageAddress, pageData, 1024);
-			HIDUSB_FlashLock();
+			FLASH_WritePage(pageAddress, pageData, 1024);
 
 			currentPage++;
 			currentPageOffset = 0;

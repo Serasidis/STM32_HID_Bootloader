@@ -4,7 +4,7 @@ DEVICE = STM32F10X_MD
 
 VECTOR_TABLE_OFFSET = 0x0000
 
-C_SRCS = Src/main.c Src/usb.c Src/hid.c Src/led.c
+C_SRCS = Src/main.c Src/usb.c Src/hid.c Src/led.c Src/flash.c
 
 DEVICE_ASM_SRCS += CMSIS/Device/ST/STM32F10x/Source/Templates/gcc/startup_stm32f10x_md.s
 DEVICE_C_SRCS += CMSIS/Device/ST/STM32F10x/Source/Templates/system_stm32f10x.c
