@@ -527,10 +527,10 @@ enum EP_BUF_NUM
 #define _pEPRxCount(bEpNum) ((uint16_t *)((_GetBTABLE()+bEpNum*8+6) + PMAAddr))
 
 #else
-#define _pEPTxAddr(bEpNum) ((uint32_t *)((_GetBTABLE()+bEpNum*8  )*2 + PMAAddr))
-#define _pEPTxCount(bEpNum) ((uint32_t *)((_GetBTABLE()+bEpNum*8+2)*2 + PMAAddr))
-#define _pEPRxAddr(bEpNum) ((uint32_t *)((_GetBTABLE()+bEpNum*8+4)*2 + PMAAddr))
-#define _pEPRxCount(bEpNum) ((uint32_t *)((_GetBTABLE()+bEpNum*8+6)*2 + PMAAddr))
+#define _pEPTxAddr(bEpNum) ((volatile uint32_t *)((_GetBTABLE()+bEpNum*8  )*2 + PMAAddr))
+#define _pEPTxCount(bEpNum) ((volatile uint32_t *)((_GetBTABLE()+bEpNum*8+2)*2 + PMAAddr))
+#define _pEPRxAddr(bEpNum) ((volatile uint32_t *)((_GetBTABLE()+bEpNum*8+4)*2 + PMAAddr))
+#define _pEPRxCount(bEpNum) ((volatile uint32_t *)((_GetBTABLE()+bEpNum*8+6)*2 + PMAAddr))
 #endif
 
 /*******************************************************************************
@@ -607,7 +607,7 @@ enum EP_BUF_NUM
   }
 #else
 #define _SetEPRxDblBuf0Count(bEpNum,wCount) {\
-    uint32_t *pdwReg = _pEPTxCount(bEpNum); \
+    volatile uint32_t *pdwReg = _pEPTxCount(bEpNum); \
     _SetEPCountRxReg(pdwReg, wCount);\
   }
 #endif
@@ -627,7 +627,7 @@ enum EP_BUF_NUM
   }
 #else
 #define _SetEPRxCount(bEpNum,wCount) {\
-    uint32_t *pdwReg = _pEPRxCount(bEpNum); \
+    volatile uint32_t *pdwReg = _pEPRxCount(bEpNum); \
     _SetEPCountRxReg(pdwReg, wCount);\
   }
 #endif
