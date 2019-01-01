@@ -110,26 +110,54 @@ static const uint8_t USBD_DEVICE_CFG_DESCRIPTOR[] = {
 	0x81,        // bEndpointAddress (IN/D2H)
 	0x03,        // bmAttributes (Interrupt)
 	0x08, 0x00,  // wMaxPacketSize 8
-	0x05         // bInterval 5 (unit depends on device speed)
+	0x05         // bInterval 5 (2^(5-1)=16 micro-frames)
 };
 
 static const uint8_t usbHidReportDescriptor[32] = {
-		0x06, 0x00, 0xFF,  // Usage Page (Vendor Defined 0xFF00)
-		0x09, 0x01,        // Usage (0x01)
-		0xA1, 0x01,        // Collection (Application)
-		0x09, 0x02,        //   Usage (0x02)
-		0x15, 0x00,        //   Logical Minimum (0)
-		0x25, 0xFF,        //   Logical Maximum (255)
-		0x75, 0x08,        //   Report Size (8)
-		0x95, 0x08,        //   Report Count (8)
-		0x81, 0x02,        //   Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
-		0x09, 0x03,        //   Usage (0x03)
-		0x15, 0x00,        //   Logical Minimum (0)
-		0x25, 0xFF,        //   Logical Maximum (255)
-		0x75, 0x08,        //   Report Size (8)
-		0x95, 0x40,        //   Report Count (64)
-		0x91, 0x02,        //   Output (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position,Non-volatile)
-		0xC0               // End Collection
+	0x06, 0x00, 0xFF,  // Usage Page (Vendor Defined 0xFF00)
+	0x09, 0x01,        // Usage (0x01)
+	0xA1, 0x01,        // Collection (Application)
+	0x09, 0x02,        //   Usage (0x02)
+	0x15, 0x00,        //   Logical Minimum (0)
+	0x25, 0xFF,        //   Logical Maximum (255)
+	0x75, 0x08,        //   Report Size (8)
+	0x95, 0x08,        //   Report Count (8)
+	0x81, 0x02,        //   Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
+	0x09, 0x03,        //   Usage (0x03)
+	0x15, 0x00,        //   Logical Minimum (0)
+	0x25, 0xFF,        //   Logical Maximum (255)
+	0x75, 0x08,        //   Report Size (8)
+	0x95, 0x40,        //   Report Count (64)
+	0x91, 0x02,        //   Output (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position,Non-volatile)
+	0xC0               // End Collection
+};
+
+/* USB String Descriptors */
+static const uint8_t sdVendor[] = {
+	0x22, // Size,
+	0x03, // Descriptor type
+	'w', 0, 'w', 0, 'w', 0, '.', 0, 's', 0, 'e', 0, 'r', 0, 'a', 0, 's', 0,
+	'i', 0, 'd', 0, 'i', 0, 's', 0, '.', 0, 'g', 0, 'r', 0
+};
+
+static const uint8_t sdProduct[] = {
+	0x2C, // Size,
+	0x03, // Descriptor type
+	'S', 0, 'T', 0, 'M', 0, '3', 0, '2', 0, 'F', 0, ' ', 0, 'H', 0, 'I', 0,
+	'D', 0, ' ', 0, 'B', 0, 'o', 0, 'o', 0, 't', 0, 'l', 0, 'o', 0, 'a', 0,
+	'd', 0, 'e', 0, 'r', 0
+};
+
+static const uint8_t sdSerial[] = {
+	0x16, // Size,
+	0x03, // Descriptor type
+	'1',0,'2',0,'3',0,'4',0,'5',0,'6',0,'7',0,'8',0,'9',0,'0',0
+};
+
+static const uint8_t sdLangID[] = {
+		0x04, // Size,
+		0x03, // Descriptor type
+		0x09, 0x04
 };
 
 void HIDUSB_Reset(void) {

@@ -32,34 +32,6 @@ void USB_LP_CAN1_RX0_IRQHandler(void);
 static void (*_EPHandler)(uint16_t) = NULL;
 static void (*_USBResetHandler)(void) = NULL;
 
-/* USB String Descriptors */
-const uint8_t sdVendor[] = {
-	0x22, // Size,
-	0x03, // Descriptor type
-	'w', 0, 'w', 0, 'w', 0, '.', 0, 's', 0, 'e', 0, 'r', 0, 'a', 0, 's', 0,
-	'i', 0, 'd', 0, 'i', 0, 's', 0, '.', 0, 'g', 0, 'r', 0
-};
-
-const uint8_t sdProduct[] = {
-	0x2C, // Size,
-	0x03, // Descriptor type
-	'S', 0, 'T', 0, 'M', 0, '3', 0, '2', 0, 'F', 0, ' ', 0, 'H', 0, 'I', 0,
-	'D', 0, ' ', 0, 'B', 0, 'o', 0, 'o', 0, 't', 0, 'l', 0, 'o', 0, 'a', 0,
-	'd', 0, 'e', 0, 'r', 0
-};
-
-const uint8_t sdSerial[] = {
-	0x16, // Size,
-	0x03, // Descriptor type
-	'1',0,'2',0,'3',0,'4',0,'5',0,'6',0,'7',0,'8',0,'9',0,'0',0
-};
-
-const uint8_t sdLangID[] = {
-		0x04, // Size,
-		0x03, // Descriptor type
-		0x09, 0x04
-};
-
 void USB_PMA2Buffer(uint8_t EPn) {
 	uint8_t Count = RxTxBuffer[EPn].RXL = (_GetEPRxCount(EPn) & 0x3FF);
 	uint32_t *Address = (uint32_t *) (PMAAddr + _GetEPRxAddr(EPn) * 2);
