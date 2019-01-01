@@ -193,65 +193,41 @@ uint16_t USB_IsDeviceConfigured(void) {
 }
 
 void USB_LP_CAN1_RX0_IRQHandler(void) {
-	// Handle Reset
-	if (_GetISTR() & ISTR_RESET) {
-		_SetISTR(_GetISTR() & CLR_RESET);
-		if(_USBResetHandler) {
-			_USBResetHandler();
-		}
-		return;
-	}
+	volatile uint16_t istr = _GetISTR();
 
-	// Handle EP data
-	if (_GetISTR() & ISTR_CTR) { // Handle data on EP
-		if(_EPHandler) {
-			_EPHandler(_GetISTR());
-		}
-		_SetISTR(_GetISTR() & CLR_CTR);
-		return;
-	}
+	while ((istr = _GetISTR() & (ISTR_CTR | ISTR_RESET | ISTR_SUSP | ISTR_WKUP))) {
 
-	// Handle DOVR
-	if (_GetISTR() & ISTR_DOVR) {
-		_SetISTR(_GetISTR() & CLR_DOVR);
-		return;
-	}
-
-	// Handle Suspend
-	if (_GetISTR() & ISTR_SUSP) {
-		_SetISTR(_GetISTR() & CLR_SUSP);
-
-		// If device address is assigned, then reset it
-		if (_GetDADDR() & 0x007f) {
-			_SetDADDR(0);
-			_SetCNTR(_GetCNTR() & ~CNTR_SUSPM);
+		// Handle EP data
+		if (istr & ISTR_CTR) { // Handle data on EP
+			if(_EPHandler) {
+				_EPHandler(_GetISTR());
+			}
+			_SetISTR((uint16_t)CLR_CTR);
 		}
 
-		return;
-	}
+		// Handle Reset
+		if (istr & ISTR_RESET) {
+		  _SetISTR((uint16_t)CLR_RESET);
+			if(_USBResetHandler) {
+				_USBResetHandler();
+			}
+		}
 
-	// Handle Error
-	if (_GetISTR() & ISTR_ERR) {
-		_SetISTR(_GetISTR() & CLR_ERR);
-		return;
-	}
+		// Handle Suspend
+		if (istr & ISTR_SUSP) {
+		  _SetISTR((uint16_t)CLR_SUSP);
 
-	// Handle Wakeup
-	if (_GetISTR() & ISTR_WKUP) {
-		_SetISTR(_GetISTR() & CLR_WKUP);
-		return;
-	}
+			// If device address is assigned, then reset it
+			if (_GetDADDR() & 0x007f) {
+				_SetDADDR(0);
+				_SetCNTR(_GetCNTR() & ~CNTR_SUSPM);
+			}
+		}
 
-	// Handle SOF
-	if (_GetISTR() & ISTR_SOF) {
-		_SetISTR(_GetISTR() & CLR_SOF);
-		return;
-	}
-
-	// Handle ESOF
-	if (_GetISTR() & ISTR_ESOF) {
-		_SetISTR(_GetISTR() & CLR_ESOF);
-		return;
+		// Handle Wakeup
+		if (istr & ISTR_WKUP) {
+		  _SetISTR((uint16_t)CLR_WKUP);
+		}
 	}
 
 	// Default to clear all interrupt flags
