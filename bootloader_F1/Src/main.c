@@ -65,6 +65,7 @@ int main(int argc, char *argv[]) {
 
 	(void) argc;
 	(void) argv;
+	uint16_t magic_word = get_and_clear_magic_word();
 
 	pins_init();
   
@@ -80,9 +81,18 @@ int main(int argc, char *argv[]) {
 	uint32_t userProgramAddress = *(volatile uint32_t *)(USER_PROGRAM + 0x04);
 	funct_ptr userProgram = (funct_ptr) userProgramAddress;
 
-	// If PB2 (BOOT 1 pin) is HIGH enter HID bootloader or no User Code is uploaded to the MCU ...
-	if((GPIOB->IDR & GPIO_IDR_IDR2)||(checkUserCode(USER_CODE_FLASH0X8001000) == false)) {
+	// If PB2 (BOOT 1 pin) is HIGH enter HID bootloader or no User Code is uploaded to the MCU or <Battery Backed RAM Register> was set from Arduino IDE exit from USB Serial mode and go to HID mode ...
+	if((magic_word == 0x424C)||(GPIOB->IDR & GPIO_IDR_IDR2)||(checkUserCode(USER_CODE_FLASH0X8001000) == false)) {
 
+		if(magic_word == 0x424C) {
+		
+#if defined HAS_LED2_PIN
+			led2_on();
+#endif
+
+			USB_Shutdown();
+			delay(4000000L);
+		}
 		USB_Init(HIDUSB_EPHandler, HIDUSB_Reset);
 	
 		while(check_flash_complete() == false){
@@ -93,31 +103,6 @@ int main(int argc, char *argv[]) {
 		NVIC_SystemReset();		//Reset STM32
 		
 		for(;;);
-	}
-	
- /**
-	* If  <Battery Backed RAM Register> was set from Arduino IDE
-	* exit from USB Serial mode and go to HID mode.
-	*/
-	if(get_and_clear_magic_word() == 0x424C) {
-		
-#if defined HAS_LED2_PIN
-		led2_on();
-#endif
-
-		USB_Shutdown();
-		delay(4000000L);
-		USB_Init(HIDUSB_EPHandler, HIDUSB_Reset);
-		//delay(400000000L);
-		while(check_flash_complete() == false){
-			delay(400L);
-		};
-		
-		USB_Shutdown(); 			//Reset USB
-		NVIC_SystemReset();		//Reset STM32
-		
-		for(;;);
-	
 	}
 	
 #if defined HAS_LED2_PIN
