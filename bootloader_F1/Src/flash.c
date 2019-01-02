@@ -19,37 +19,33 @@
 */
 
 #include <stm32f10x.h>
-#include "bitwise.h"
 #include "flash.h"
 
 void FLASH_WritePage(uint32_t page, uint8_t *data, uint16_t size) {
 
 	FLASH->KEYR = FLASH_KEY1;
 	FLASH->KEYR = FLASH_KEY2;
-
-	while(FLASH->SR & FLASH_SR_BSY);
-
-	bit_set(FLASH->CR, FLASH_CR_PER);
-
-	FLASH->AR = page;
-
-	bit_set(FLASH->CR, FLASH_CR_STRT);
-
-	while(FLASH->SR & FLASH_SR_BSY);
-
-	bit_clear(FLASH->CR, FLASH_CR_PER);
-
-	while(FLASH->SR & FLASH_SR_BSY);
-
-	bit_set(FLASH->CR, FLASH_CR_PG);
-
-	for(uint16_t i = 0; i < size; i += 2) {
-		*(volatile uint16_t *)(page + i) = *(uint16_t *)(data + i);
-
-		while(FLASH->SR & FLASH_SR_BSY);
+	while (READ_BIT(FLASH->SR, FLASH_SR_BSY)) {
+		;
 	}
-
-	bit_clear(FLASH->CR, FLASH_CR_PG);
-
-	bit_set(FLASH->CR, FLASH_CR_LOCK);
+	SET_BIT(FLASH->CR, FLASH_CR_PER);
+	FLASH->AR = page;
+	SET_BIT(FLASH->CR, FLASH_CR_STRT);
+	while (READ_BIT(FLASH->SR, FLASH_SR_BSY)) {
+		;
+	}
+	CLEAR_BIT(FLASH->CR, FLASH_CR_PER);
+	while (READ_BIT(FLASH->SR, FLASH_SR_BSY)) {
+		;
+	}
+	SET_BIT(FLASH->CR, FLASH_CR_PG);
+	for (uint16_t i = 0; i < size; i += 2) {
+		*(volatile uint16_t *)(page + i) = *(uint16_t *)(data + i);
+		while (READ_BIT(FLASH->SR, FLASH_SR_BSY)) {
+			;
+		}
+	}
+	CLEAR_BIT(FLASH->CR, FLASH_CR_PG);
+	SET_BIT(FLASH->CR, FLASH_CR_LOCK);
 }
+

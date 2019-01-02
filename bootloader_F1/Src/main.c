@@ -28,7 +28,6 @@
 #include "usb.h"
 #include "config.h"
 #include "hid.h"
-#include "bitwise.h"
 #include "led.h"
 
 // HID Bootloader takes 4 kb flash.
@@ -47,16 +46,16 @@ bool uploadFinished;
 bool send_next_data = false;  
 
 static uint16_t get_and_clear_magic_word(void) {
-	bit_set(RCC->APB1ENR, RCC_APB1ENR_BKPEN | RCC_APB1ENR_PWREN); //Enable the power and backup interface clocks by setting the PWREN and BKPEN bitsin the RCC_APB1ENR register
+	SET_BIT(RCC->APB1ENR, RCC_APB1ENR_BKPEN | RCC_APB1ENR_PWREN); // Enable the power and backup interface clocks by setting the PWREN and BKPEN bitsin the RCC_APB1ENR register
 
 	uint16_t value = BKP->DR10;
 	if(value) {
-		bit_set(PWR->CR, PWR_CR_DBP); //Enable access to the backup registers and the RTC.
+		SET_BIT(PWR->CR, PWR_CR_DBP); //Enable access to the backup registers and the RTC.
 		BKP->DR10 = 0x0000;
-		bit_clear(PWR->CR, PWR_CR_DBP);
+		CLEAR_BIT(PWR->CR, PWR_CR_DBP);
 	}
-	
-	bit_clear(RCC->APB1ENR, RCC_APB1ENR_BKPEN | RCC_APB1ENR_PWREN);
+
+	CLEAR_BIT(RCC->APB1ENR, RCC_APB1ENR_BKPEN | RCC_APB1ENR_PWREN);
 
 	return value;
 }
@@ -94,7 +93,6 @@ int main(int argc, char *argv[]) {
 			delay(4000000L);
 		}
 		USB_Init(HIDUSB_EPHandler, HIDUSB_Reset);
-	
 		while(check_flash_complete() == false){
 			delay(400L);
 		};
@@ -110,15 +108,14 @@ int main(int argc, char *argv[]) {
 #endif
 
 	// Turn GPIOA clock off
-	bit_clear(RCC->APB2ENR, RCC_APB2ENR_IOPAEN);
+	CLEAR_BIT(RCC->APB2ENR, RCC_APB2ENR_IOPAEN);
 
 	// Turn GPIOB clock off
 	LED1_CLOCK_DIS;
-	//bit_clear(RCC->APB2ENR, RCC_APB2ENR_IOPBEN);
+	//CLEAR_BIT(RCC->APB2ENR, RCC_APB2ENR_IOPBEN);
 	SCB->VTOR = USER_PROGRAM;
 	asm volatile("msr msp, %0"::"g"(*(volatile u32 *) USER_PROGRAM));
 	userProgram();
-
 	for(;;);
 }
 

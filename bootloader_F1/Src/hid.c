@@ -24,7 +24,6 @@
 #include "hid.h"
 #include "led.h"
 #include "flash.h"
-#include "bitwise.h"
 
 // This should be <= MAX_EP_NUM defined in usb.h
 #define EP_NUM 2
