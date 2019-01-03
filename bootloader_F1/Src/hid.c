@@ -160,40 +160,6 @@ static const uint8_t sdLangID[] = {
 	0x09, 0x04
 };
 
-void HIDUSB_Reset(void) {
-
-	//led_init();
-	//led_off();
-
-	/* Initialize Flash Page Settings */
-	currentPage = MIN_PAGE;
-	currentPageOffset = 0;
-	_SetBTABLE(BTABLE_ADDRESS);
-
-	/* Initialize Endpoint 0 */
-	_SetEPType(ENDP0, EP_CONTROL);
-	_SetEPRxAddr(ENDP0, ENDP0_RXADDR);
-	_SetEPTxAddr(ENDP0, ENDP0_TXADDR);
-	_ClearEP_KIND(ENDP0);
-	_SetEPRxValid(ENDP0);
-
-	/* Initialize Endpoint 1 */
-	_SetEPType(ENDP1, EP_INTERRUPT);
-	_SetEPTxAddr(ENDP1, ENDP1_TXADDR);
-	_SetEPTxCount(ENDP1, 0x8);
-	_SetEPRxStatus(ENDP1, EP_RX_DIS);
-	_SetEPTxStatus(ENDP1, EP_TX_NAK);
-
-	/* Set address in every used endpoint */
-	for (int i = 0; i < EP_NUM; i++) {
-		_SetEPAddress((uint8_t ) i, (uint8_t ) i);
-		RxTxBuffer[i].MaxPacketSize = 8;
-	}
-
-	/* Set device address and enable function */
-	_SetDADDR(0 | DADDR_EF);
-}
-
 static void HIDUSB_GetDescriptor(USB_SetupPacket *SPacket) {
 
 	switch (SPacket->wValue.H) {
@@ -300,6 +266,40 @@ static void HIDUSB_HandleData(uint8_t *data) {
 			led_off();
 		}
 	}
+}
+
+void HIDUSB_Reset(void) {
+
+	//led_init();
+	//led_off();
+
+	/* Initialize Flash Page Settings */
+	currentPage = MIN_PAGE;
+	currentPageOffset = 0;
+	_SetBTABLE(BTABLE_ADDRESS);
+
+	/* Initialize Endpoint 0 */
+	_SetEPType(ENDP0, EP_CONTROL);
+	_SetEPRxAddr(ENDP0, ENDP0_RXADDR);
+	_SetEPTxAddr(ENDP0, ENDP0_TXADDR);
+	_ClearEP_KIND(ENDP0);
+	_SetEPRxValid(ENDP0);
+
+	/* Initialize Endpoint 1 */
+	_SetEPType(ENDP1, EP_INTERRUPT);
+	_SetEPTxAddr(ENDP1, ENDP1_TXADDR);
+	_SetEPTxCount(ENDP1, 0x8);
+	_SetEPRxStatus(ENDP1, EP_RX_DIS);
+	_SetEPTxStatus(ENDP1, EP_TX_NAK);
+
+	/* Set address in every used endpoint */
+	for (int i = 0; i < EP_NUM; i++) {
+		_SetEPAddress((uint8_t ) i, (uint8_t ) i);
+		RxTxBuffer[i].MaxPacketSize = 8;
+	}
+
+	/* Set device address and enable function */
+	_SetDADDR(0 | DADDR_EF);
 }
 
 void HIDUSB_EPHandler(uint16_t Status) {

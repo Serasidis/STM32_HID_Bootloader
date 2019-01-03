@@ -716,11 +716,12 @@ enum EP_BUF_NUM
 
 /* Function Prototypes */
 
-void USB_Init(void (*EPHandlerPtr)(uint16_t), void (*ResetHandlerPtr)(void));
-void USB_Shutdown(void);
 void USB_PMA2Buffer(uint8_t EPn);
 void USB_Buffer2PMA(uint8_t EPn);
 void USB_SendData(uint8_t EPn, uint16_t *Data, uint16_t Length);
+void USB_Shutdown(void);
+void USB_Init(void (*EPHandlerPtr)(uint16_t), void (*ResetHandlerPtr)(void));
 uint16_t USB_IsDeviceConfigured(void);
+void USB_LP_CAN1_RX0_IRQHandler(void);
 
 #endif /* USB_H_ */

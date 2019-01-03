@@ -26,8 +26,6 @@ USB_RxTxBuf_t RxTxBuffer[MAX_EP_NUM];
 volatile uint8_t DeviceAddress = 0;
 volatile uint16_t DeviceConfigured = 0, DeviceStatus = 0;
 
-void USB_LP_CAN1_RX0_IRQHandler(void);
-
 static void (*_EPHandler)(uint16_t) = NULL;
 static void (*_USBResetHandler)(void) = NULL;
 

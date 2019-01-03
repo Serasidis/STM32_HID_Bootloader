@@ -91,11 +91,10 @@ uint16_t erase_page = 1;
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 
-void write_flash_sector(uint32_t currentPage);
-extern uint8_t USBD_CUSTOM_HID_SendReport (USBD_HandleTypeDef *pdev, uint8_t *report, uint16_t len);
-
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
+void write_flash_sector(uint32_t currentPage);
+extern uint8_t USBD_CUSTOM_HID_SendReport(USBD_HandleTypeDef *pdev, uint8_t *report, uint16_t len);
 
 /* USER CODE END PFP */
 

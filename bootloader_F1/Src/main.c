@@ -35,15 +35,42 @@
 #define USER_CODE_FLASH0X8001000    ((uint32_t) 0x08001000)
 
 typedef void (*funct_ptr)(void);
-void delay(uint32_t tmr);
 
-void blink_led(uint16_t times);
-volatile uint32_t timeout = 0;
-bool checkUserCode(u32 usrAddr);
-bool check_flash_complete(void);
 bool uploadStarted;
 bool uploadFinished;
-bool send_next_data = false;  
+
+static void delay(uint32_t tmr) {
+	for (uint32_t i = 0; i < tmr; i++) {
+		asm volatile ("nop\n");
+	}
+}
+
+static bool check_flash_complete(void) {
+	if (uploadFinished == true) {
+		return true;
+	}
+	if (uploadStarted == false) {
+
+#if defined HAS_LED1_PIN
+		led_on();
+		delay(200000L);
+		led_off();
+#endif
+
+		delay(200000L);
+	}
+	return false;
+}
+
+static bool check_user_code(u32 usrAddr) {
+	u32 sp = *(vu32 *) usrAddr;
+
+	if ((sp & 0x2FFE0000) == 0x20000000) {
+		return true;
+	} else {
+		return false;
+	}
+}
 
 static uint16_t get_and_clear_magic_word(void) {
 
@@ -79,7 +106,7 @@ int main(int argc, char *argv[]) {
 		
 	uploadStarted = false;
 	uploadFinished = false;
-	uint32_t userProgramAddress = *(volatile uint32_t *)(USER_PROGRAM + 0x04);
+	uint32_t userProgramAddress = *(volatile uint32_t *) (USER_PROGRAM + 0x04);
 	funct_ptr userProgram = (funct_ptr) userProgramAddress;
 
 	/* If PB2 (BOOT 1 pin) is HIGH enter HID bootloader or no User
@@ -89,7 +116,7 @@ int main(int argc, char *argv[]) {
 	 */
 	if ((magic_word == 0x424C) ||
 	    (GPIOB->IDR & GPIO_IDR_IDR2) ||
-	    (checkUserCode(USER_CODE_FLASH0X8001000) == false)) {
+	    (check_user_code(USER_CODE_FLASH0X8001000) == false)) {
 		if (magic_word == 0x424C) {
 		
 #if defined HAS_LED2_PIN
@@ -109,7 +136,7 @@ int main(int argc, char *argv[]) {
 
 		/* Reset STM32 */
 		NVIC_SystemReset();
-		for(;;) {
+		for (;;) {
 			;
 		}
 	}
@@ -129,51 +156,5 @@ int main(int argc, char *argv[]) {
 	userProgram();
 	for (;;) {
 		;
-	}
-}
-
-bool check_flash_complete(void){
-	if (uploadFinished == true) {
-		return true;
-	}
-	if (uploadStarted == false) {
-
-#if defined HAS_LED1_PIN
-		led_on();
-		delay(200000L);
-		led_off();
-#endif
-
-		delay(200000L);
-	}
-	return false;
-}
-
-bool checkUserCode(u32 usrAddr) {
-	u32 sp = *(vu32 *) usrAddr;
-
-	if ((sp & 0x2FFE0000) == 0x20000000) {
-		return true;
-	} else {
-		return false;
-	}
-}
-
-void blink_led(uint16_t times) {
-	for (int i = 0; i < times; i++) {
-
-#if defined HAS_LED1_PIN
-		led_on();
-		delay(200000L);
-		led_off();
-#endif
-
-		delay(200000L);
-	}
-}
-	
-void delay(uint32_t tmr) {
-	for (uint32_t i = 0; i < tmr; i++) {
-		asm volatile ("nop\n");
 	}
 }
