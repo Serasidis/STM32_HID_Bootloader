@@ -17,7 +17,7 @@
 	#define DISC_BIT_0		SET_BIT(GPIOB->CRH, GPIO_CRH_CNF9_0)
 	#define DISC_BIT_1		CLEAR_BIT(GPIOB->CRH, GPIO_CRH_CNF9_1)
 	#define DISC_MODE		SET_BIT(GPIOB->CRH, GPIO_CRH_MODE9)
-  #define DISC_HIGH			(GPIOB->BSRR = GPIO_BSRR_BS9)
+	#define DISC_HIGH		(GPIOB->BSRR = GPIO_BSRR_BS9)
 	#define DISC_LOW		(GPIOB->BRR = GPIO_BRR_BR9)
 
 	// Enable the internal pull-down on PB2 pin. By default, PB2

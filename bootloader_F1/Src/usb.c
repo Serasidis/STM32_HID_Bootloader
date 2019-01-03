@@ -47,109 +47,101 @@ void USB_Buffer2PMA(uint8_t EPn) {
 	uint32_t *Destination;
 	uint8_t Count;
 
-	Count = RxTxBuffer[EPn].TXL <= RxTxBuffer[EPn].MaxPacketSize ? RxTxBuffer[EPn].TXL : RxTxBuffer[EPn].MaxPacketSize;
+	Count = RxTxBuffer[EPn].TXL <= RxTxBuffer[EPn].MaxPacketSize ?
+		RxTxBuffer[EPn].TXL : RxTxBuffer[EPn].MaxPacketSize;
 	_SetEPTxCount(EPn, Count);
-
 	if (Count == 0) {
 		return;
 	}
 	Destination = (uint32_t *) (PMAAddr + _GetEPTxAddr(EPn) * 2);
-
 	for (uint8_t i = 0; i < (Count + 1) / 2; i++) {
 		*(uint32_t *) Destination = *(uint16_t *) RxTxBuffer[EPn].TXB;
 		Destination++;
 		RxTxBuffer[EPn].TXB++;
 	}
-
 	RxTxBuffer[EPn].TXL -= Count;
 }
 
 void USB_SendData(uint8_t EPn, uint16_t *Data, uint16_t Length) {
-
 	if (EPn > 0 && !DeviceConfigured) {
 		return;
 	}
-
 	RxTxBuffer[EPn].TXL = Length;
-
 	RxTxBuffer[EPn].TXB = Data;
-
 	USB_Buffer2PMA(EPn);
-
 	_SetEPTxValid(EPn);
 }
 
 void USB_Shutdown(void) {
 	SET_BIT(RCC->APB2ENR, RCC_APB2ENR_IOPAEN);
 
-	// Disable USB IRQ
+	/* Disable USB IRQ */
 	NVIC_DisableIRQ(USB_LP_CAN1_RX0_IRQn);
 	_SetISTR(0);
-
 	DeviceConfigured = DeviceStatus = 0;
-
 	_EPHandler = NULL;
 	_USBResetHandler = NULL;
 
-	// Turn USB Macrocell off
+	/* Turn USB Macrocell off */
 	_SetCNTR(CNTR_FRES|CNTR_PDWN);
 
-	// PA_12 output mode: General purpose output open drain (b01)
+	/* PA_12 output mode: General purpose output open drain (b01) */
 	SET_BIT(GPIOA->CRH, GPIO_CRH_CNF12_0);
 	CLEAR_BIT(GPIOA->CRH, GPIO_CRH_CNF12_1);
 
-	// Set PA_12 to output
-	SET_BIT(GPIOA->CRH, GPIO_CRH_MODE12);// PA_12 set as: Output mode, max speed 50 MHz.
+	/* Set PA_12 set as: Output mode, max speed 50 MHz. */
+	SET_BIT(GPIOA->CRH, GPIO_CRH_MODE12);
 
-	// Sinks A12 to GND
+	/* Sinks A12 to GND */
 	GPIOA->BRR = GPIO_BRR_BR12;
 
-	// Disable USB Clock on APB1
+	/* Disable USB Clock on APB1 */
 	CLEAR_BIT(RCC->APB1ENR, RCC_APB1ENR_USBEN);
 }
 
 void USB_Init(void (*EPHandlerPtr)(uint16_t), void (*ResetHandlerPtr)(void)) {
 
-	// Reset RX and TX lengths inside RxTxBuffer struct for all endpoints
-	for(int i = 0; i < MAX_EP_NUM; i++) {
+	/* Reset RX and TX lengths inside RxTxBuffer struct for all
+	 * endpoints
+	 */
+	for (int i = 0; i < MAX_EP_NUM; i++) {
 		RxTxBuffer[i].RXL = RxTxBuffer[i].TXL = 0;
 	}
-
 	_EPHandler = EPHandlerPtr;
 	_USBResetHandler = ResetHandlerPtr;
-
 	SET_BIT(RCC->APB2ENR, RCC_APB2ENR_IOPAEN);
 
-	// PA_12 output mode: General purpose Input Float (b01)
+	/* PA_12 output mode: General purpose Input Float (b01) */
 	SET_BIT(GPIOA->CRH, GPIO_CRH_CNF12_0);
 	CLEAR_BIT(GPIOA->CRH, GPIO_CRH_CNF12_1);
 
-	// Set PA_12 to Input mode
+	/* Set PA_12 to Input mode */
 	CLEAR_BIT(GPIOA->CRH, GPIO_CRH_MODE12);
-
 	DeviceConfigured = DeviceStatus = 0;
-
 	SET_BIT(RCC->APB1ENR, RCC_APB1ENR_USBEN);
 	NVIC_EnableIRQ(USB_LP_CAN1_RX0_IRQn);
 
-	/*** CNTR_PWDN = 0 ***/
+	/* CNTR_FRES = 1, CNTR_PWDN = 0 */
 	_SetCNTR(CNTR_FRES);
 
 	/* The following sequence is recommended:
-	 1- FRES = 0
-	 2- Wait until RESET flag = 1 (polling)
-	 3- clear ISTR register */
+	 *  1- FRES = 0
+	 * 2- Wait until RESET flag = 1 (polling)
+	 * 3- clear ISTR register
+	 */
 
-	/*** CNTR_FRES = 0 ***/
+	/* CNTR_FRES = 0 */
 	_SetCNTR(0);
 
 	/* Wait until RESET flag = 1 (polling) */
-	while (!READ_BIT(_GetISTR(), ISTR_RESET));
+	while (!READ_BIT(_GetISTR(), ISTR_RESET)) {
+		;
+	}
 
-	/*** Clear pending interrupts ***/
+	/* Clear pending interrupts */
 	_SetISTR(0);
 
-	/*** Set interrupt mask ***/
+	/* Set interrupt mask */
 	_SetCNTR(CNTR_RESETM | CNTR_SUSPM | CNTR_WKUPM);
 }
 
@@ -162,40 +154,41 @@ void USB_LP_CAN1_RX0_IRQHandler(void) {
 
 	while ((istr = _GetISTR() & (ISTR_CTR | ISTR_RESET | ISTR_SUSP | ISTR_WKUP))) {
 
-		// Handle EP data
-		if (READ_BIT(istr, ISTR_CTR)) { // Handle data on EP
-			_SetISTR((uint16_t)CLR_CTR);
-			if(_EPHandler) {
+		/* Handle EP data */
+		if (READ_BIT(istr, ISTR_CTR)) {
+
+			/* Handle data on EP */
+			_SetISTR((uint16_t) CLR_CTR);
+			if (_EPHandler) {
 				_EPHandler(_GetISTR());
 			}
 		}
 
-		// Handle Reset
+		/* Handle Reset */
 		if (READ_BIT(istr, ISTR_RESET)) {
-		  _SetISTR((uint16_t)CLR_RESET);
-			if(_USBResetHandler) {
+		  _SetISTR((uint16_t) CLR_RESET);
+			if (_USBResetHandler) {
 				_USBResetHandler();
 			}
 		}
 
-		// Handle Suspend
+		/* Handle Suspend */
 		if (READ_BIT(istr, ISTR_SUSP)) {
-		  _SetISTR((uint16_t)CLR_SUSP);
+		  _SetISTR((uint16_t) CLR_SUSP);
 
-			// If device address is assigned, then reset it
+			/* If device address is assigned, then reset it */
 			if (_GetDADDR() & 0x007f) {
 				_SetDADDR(0);
 				_SetCNTR(_GetCNTR() & ~CNTR_SUSPM);
 			}
 		}
 
-		// Handle Wakeup
+		/* Handle Wakeup */
 		if (READ_BIT(istr, ISTR_WKUP)) {
-		  _SetISTR((uint16_t)CLR_WKUP);
+		  _SetISTR((uint16_t) CLR_WKUP);
 		}
 	}
 
-	// Default to clear all interrupt flags
+	/* Default to clear all interrupt flags */
 	_SetISTR(0);
 }
-

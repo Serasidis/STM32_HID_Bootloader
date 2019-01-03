@@ -22,56 +22,62 @@
 
 #if defined HAS_LED1_PIN	
 void led_off(void) {
-  LED1_OFF;
+	LED1_OFF;
 }
 
 void led_on(void) {
-  LED1_ON;
+	LED1_ON;
 }
 #endif
 
 #if defined HAS_LED2_PIN	
 void led2_off(void) {
-  LED2_OFF;
+	LED2_OFF;
 }
 
 void led2_on(void) {
-  LED2_ON;
+	LED2_ON;
 }
 #endif
 
 void pins_init(void) {
 
 #if defined HAS_LED1_PIN	
-  LED1_CLOCK_EN;
-  LED1_BIT_0;
-  LED1_BIT_1;
-  LED1_MODE;
+	LED1_CLOCK_EN;
+	LED1_BIT_0;
+	LED1_BIT_1;
+	LED1_MODE;
 #endif
 
 #if defined HAS_LED2_PIN	
-  LED2_CLOCK_EN;
-  LED2_BIT_0;
-  LED2_BIT_1;
-  LED2_MODE;
+	LED2_CLOCK_EN;
+	LED2_BIT_0;
+	LED2_BIT_1;
+	LED2_MODE;
 #endif
 
 #if defined HAS_DISC_PIN
-  DISC_CLOCK_EN;
-  DISC_BIT_0;
-  DISC_BIT_1;
-  DISC_MODE;
-  DISC_LOW;
+	DISC_CLOCK_EN;
+	DISC_BIT_0;
+	DISC_BIT_1;
+	DISC_MODE;
+	DISC_LOW;
 #endif
   
 #if defined PB2_PULLDOWN
-  SET_BIT(RCC->APB2ENR, RCC_APB2ENR_IOPBEN); // Turn GPIOB clock on
-  MODIFY_REG(GPIOB->CRL, (GPIO_CRL_CNF2_0 | GPIO_CRL_MODE2), GPIO_CRL_CNF2_1);
-  CLEAR_BIT(GPIOB->ODR, GPIO_ODR_ODR2);
+
+	/* Turn GPIOB clock on */
+	SET_BIT(RCC->APB2ENR, RCC_APB2ENR_IOPBEN);
+	MODIFY_REG(GPIOB->CRL, (GPIO_CRL_CNF2_0 | GPIO_CRL_MODE2), GPIO_CRL_CNF2_1);
+	CLEAR_BIT(GPIOB->ODR, GPIO_ODR_ODR2);
+
 #else
-  //PB2 is in FLOATING mode.
-  SET_BIT(RCC->APB2ENR, RCC_APB2ENR_IOPBEN); // Turn GPIOB clock on
-  CLEAR_BIT(GPIOB->CRL, (GPIO_CRL_MODE2 | GPIO_CRL_MODE2));
+
+	/* PB2 is in FLOATING mode.
+	 * Turn GPIOB clock on
+	 */
+	SET_BIT(RCC->APB2ENR, RCC_APB2ENR_IOPBEN);
+	CLEAR_BIT(GPIOB->CRL, (GPIO_CRL_MODE2 | GPIO_CRL_MODE2));
 #endif
 
 }

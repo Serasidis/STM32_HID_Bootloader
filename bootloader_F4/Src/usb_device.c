@@ -92,22 +92,19 @@ USBD_HandleTypeDef hUsbDeviceFS;
   */
 void MX_USB_DEVICE_Init(void)
 {
-  /* USER CODE BEGIN USB_DEVICE_Init_PreTreatment */
+	/* USER CODE BEGIN USB_DEVICE_Init_PreTreatment */
   
-  /* USER CODE END USB_DEVICE_Init_PreTreatment */
+	/* USER CODE END USB_DEVICE_Init_PreTreatment */
   
-  /* Init Device Library, add supported class and start the library. */
-  USBD_Init(&hUsbDeviceFS, &FS_Desc, DEVICE_FS);
+	/* Init Device Library, add supported class and start the library. */
+	USBD_Init(&hUsbDeviceFS, &FS_Desc, DEVICE_FS);
+	USBD_RegisterClass(&hUsbDeviceFS, &USBD_CUSTOM_HID);
+	USBD_CUSTOM_HID_RegisterInterface(&hUsbDeviceFS, &USBD_CustomHID_fops_FS);
+	USBD_Start(&hUsbDeviceFS);
 
-  USBD_RegisterClass(&hUsbDeviceFS, &USBD_CUSTOM_HID);
-
-  USBD_CUSTOM_HID_RegisterInterface(&hUsbDeviceFS, &USBD_CustomHID_fops_FS);
-
-  USBD_Start(&hUsbDeviceFS);
-
-  /* USER CODE BEGIN USB_DEVICE_Init_PostTreatment */
+	/* USER CODE BEGIN USB_DEVICE_Init_PostTreatment */
   
-  /* USER CODE END USB_DEVICE_Init_PostTreatment */
+	/* USER CODE END USB_DEVICE_Init_PostTreatment */
 }
 
 /**

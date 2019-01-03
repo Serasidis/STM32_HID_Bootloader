@@ -120,21 +120,21 @@ extern uint8_t new_data_is_received;
 /** Usb HID report descriptor. */
 __ALIGN_BEGIN static uint8_t CUSTOM_HID_ReportDesc_FS[USBD_CUSTOM_HID_REPORT_DESC_SIZE] __ALIGN_END =
 {
-  /* USER CODE BEGIN 0 */
-		0x06, 0x00, 0xFF,//USAGE_PAGE (Vendor Defined Page 1)       // 3 B
-		0x09, 0x00,      //USAGE (Undefined)                        // 5 B
-		0xA1, 0x01,      //COLLECTION (Application)                 // 7 B
-	
-		0x75, 0x08,      //  REPORT_SIZE (8)                        // 9 B
-		0x95, CUSTOM_HID_EPOUT_SIZE,      //  REPORT_COUNT (64)
-		0x91, 0x03,			 //  OUTPUT (Cnst, Var, Abs)								// 14B
+	/* USER CODE BEGIN 0 */
+	0x06, 0x00, 0xFF,//USAGE_PAGE (Vendor Defined Page 1)       // 3 B
+	0x09, 0x00,      //USAGE (Undefined)                        // 5 B
+	0xA1, 0x01,      //COLLECTION (Application)                 // 7 B
 
-		0x75, 0x08,      //  REPORT_SIZE (8)                        // 9 B
-		0x95, CUSTOM_HID_EPIN_SIZE,      //  REPORT_COUNT (8)
-		0x81, 0x03,			 //  INPUT (Cnst, Var, Abs)									// 14B
+	0x75, 0x08,      //  REPORT_SIZE (8)                        // 9 B
+	0x95, CUSTOM_HID_EPOUT_SIZE,      //  REPORT_COUNT (64)
+	0x91, 0x03,			 //  OUTPUT (Cnst, Var, Abs)												   // 14B
+
+	0x75, 0x08,      //  REPORT_SIZE (8)                        // 9 B
+	0x95, CUSTOM_HID_EPIN_SIZE,      //  REPORT_COUNT (8)
+	0x81, 0x03,			 //  INPUT (Cnst, Var, Abs)												   // 14B
 	
-  /* USER CODE END 0 */
-  0xC0    /*     END_COLLECTION	             */
+	/* USER CODE END 0 */
+	0xC0    /*     END_COLLECTION	             */
 };
 
 /* USER CODE BEGIN PRIVATE_VARIABLES */
@@ -173,10 +173,10 @@ static int8_t CUSTOM_HID_OutEvent_FS(uint8_t event_idx, uint8_t state);
 
 USBD_CUSTOM_HID_ItfTypeDef USBD_CustomHID_fops_FS =
 {
-  CUSTOM_HID_ReportDesc_FS,
-  CUSTOM_HID_Init_FS,
-  CUSTOM_HID_DeInit_FS,
-  CUSTOM_HID_OutEvent_FS
+	CUSTOM_HID_ReportDesc_FS,
+	CUSTOM_HID_Init_FS,
+	CUSTOM_HID_DeInit_FS,
+	CUSTOM_HID_OutEvent_FS
 };
 
 /** @defgroup USBD_CUSTOM_HID_Private_Functions USBD_CUSTOM_HID_Private_Functions
@@ -192,9 +192,9 @@ USBD_CUSTOM_HID_ItfTypeDef USBD_CustomHID_fops_FS =
   */
 static int8_t CUSTOM_HID_Init_FS(void)
 {
-  /* USER CODE BEGIN 4 */
-  return (USBD_OK);
-  /* USER CODE END 4 */
+	/* USER CODE BEGIN 4 */
+	return USBD_OK;
+	/* USER CODE END 4 */
 }
 
 /**
@@ -203,9 +203,9 @@ static int8_t CUSTOM_HID_Init_FS(void)
   */
 static int8_t CUSTOM_HID_DeInit_FS(void)
 {
-  /* USER CODE BEGIN 5 */
-  return (USBD_OK);
-  /* USER CODE END 5 */
+	/* USER CODE BEGIN 5 */
+	return USBD_OK;
+	/* USER CODE END 5 */
 }
 
 /**
@@ -216,16 +216,18 @@ static int8_t CUSTOM_HID_DeInit_FS(void)
   */
 static int8_t CUSTOM_HID_OutEvent_FS(uint8_t event_idx, uint8_t state)
 {
-  /* USER CODE BEGIN 6 */
-  	USBD_CUSTOM_HID_HandleTypeDef     *hhid = (USBD_CUSTOM_HID_HandleTypeDef*)hUsbDeviceFS.pClassData;
-	
-	for(uint8_t i=0;i<CUSTOM_HID_EPOUT_SIZE;i++){
-		USB_RX_Buffer[i] =  hhid->Report_buf[i]; //To read user data from PC
+	/* USER CODE BEGIN 6 */
+  	USBD_CUSTOM_HID_HandleTypeDef *hhid = (USBD_CUSTOM_HID_HandleTypeDef*) hUsbDeviceFS.pClassData;
+
+	for (uint8_t i = 0; i <CUSTOM_HID_EPOUT_SIZE; i++) {
+
+		/* To read user data from PC */
+		USB_RX_Buffer[i] =  hhid->Report_buf[i];
 	}
 	new_data_is_received = 1;	
-	
-	return (USBD_OK);
-  /* USER CODE END 6 */
+	return USBD_OK;
+
+	/* USER CODE END 6 */
 }
 
 /* USER CODE BEGIN 7 */
@@ -238,7 +240,7 @@ static int8_t CUSTOM_HID_OutEvent_FS(uint8_t event_idx, uint8_t state)
 /*
 static int8_t USBD_CUSTOM_HID_SendReport_FS(uint8_t *report, uint16_t len)
 {
-  return USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, report, len);
+	return USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, report, len);
 }
 */
 /* USER CODE END 7 */
@@ -259,4 +261,3 @@ static int8_t USBD_CUSTOM_HID_SendReport_FS(uint8_t *report, uint16_t len)
   */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
-
