@@ -48,88 +48,88 @@ extern bool uploadFinished;
 extern bool send_next_data;
 
 /* Buffer table base address */
-#define BTABLE_ADDRESS      (0x00)
+#define BTABLE_ADDRESS		(0x00)
 
 /* EP0  */
 /* RX/TX buffer base address */
-#define ENDP0_RXADDR        (0x18)
-#define ENDP0_TXADDR        (0x58)
+#define ENDP0_RXADDR		(0x18)
+#define ENDP0_TXADDR		(0x58)
 
 /* EP1  */
 /* TX buffer base address */
-#define ENDP1_TXADDR        (0x100)
+#define ENDP1_TXADDR		(0x100)
 
 /* USB Descriptors */
 static const uint8_t USB_DEVICE_DESC[] = {
-	0x12,        // bLength
-	0x01,        // bDescriptorType (Device)
-	0x10, 0x01,  // bcdUSB 1.10
-	0x00,        // bDeviceClass (Use class information in the Interface Descriptors)
-	0x00,        // bDeviceSubClass
-	0x00,        // bDeviceProtocol
-	0x08,        // bMaxPacketSize0 8
-	0x09, 0x12,  // idVendor 0x1209
-	0xBA, 0xBE,  // idProduct 0xBEBA
-	0x02, 0x00,  // bcdDevice 0.02
-	0x01,        // iManufacturer (String Index)
-	0x02,        // iProduct (String Index)
-	0x00,        // iSerialNumber (String Index)
-	0x01         // bNumConfigurations 1
+	0x12,			// bLength
+	0x01,			// bDescriptorType (Device)
+	0x10, 0x01,		// bcdUSB 1.10
+	0x00,			// bDeviceClass (Use class information in the Interface Descriptors)
+	0x00,			// bDeviceSubClass
+	0x00,			// bDeviceProtocol
+	0x08,			// bMaxPacketSize0 8
+	0x09, 0x12,		// idVendor 0x1209
+	0xBA, 0xBE,		// idProduct 0xBEBA
+	0x02, 0x00,		// bcdDevice 0.02
+	0x01,			// iManufacturer (String Index)
+	0x02,			// iProduct (String Index)
+	0x00,			// iSerialNumber (String Index)
+	0x01 			// bNumConfigurations 1
 };
 
 static const uint8_t USBD_DEVICE_CFG_DESCRIPTOR[] = {
-	0x09,        // bLength
-	0x02,        // bDescriptorType (Configuration)
-	0x22, 0x00,  // wTotalLength 34
-	0x01,        // bNumInterfaces 1
-	0x01,        // bConfigurationValue
-	0x00,        // iConfiguration (String Index)
-	0xC0,        // bmAttributes Self Powered
-	0x32,        // bMaxPower 100mA
+	0x09,			// bLength
+	0x02,			// bDescriptorType (Configuration)
+	0x22, 0x00,		// wTotalLength 34
+	0x01,			// bNumInterfaces 1
+	0x01,			// bConfigurationValue
+	0x00,			// iConfiguration (String Index)
+	0xC0,			// bmAttributes Self Powered
+	0x32,			// bMaxPower 100mA
 
-	0x09,        // bLength
-	0x04,        // bDescriptorType (Interface)
-	0x00,        // bInterfaceNumber 0
-	0x00,        // bAlternateSetting
-	0x01,        // bNumEndpoints 1
-	0x03,        // bInterfaceClass
-	0x00,        // bInterfaceSubClass
-	0x00,        // bInterfaceProtocol
-	0x00,        // iInterface (String Index)
+	0x09,			// bLength
+	0x04,			// bDescriptorType (Interface)
+	0x00,			// bInterfaceNumber 0
+	0x00,			// bAlternateSetting
+	0x01,			// bNumEndpoints 1
+	0x03,			// bInterfaceClass
+	0x00,			// bInterfaceSubClass
+	0x00,			// bInterfaceProtocol
+	0x00,			// iInterface (String Index)
 
-	0x09,        // bLength
-	0x21,        // bDescriptorType (HID)
-	0x11, 0x01,  // bcdHID 1.11
-	0x00,        // bCountryCode
-	0x01,        // bNumDescriptors
-	0x22,        // bDescriptorType[0] (HID)
-	0x20, 0x00,  // wDescriptorLength[0] 32
+	0x09,			// bLength
+	0x21,			// bDescriptorType (HID)
+	0x11, 0x01,		// bcdHID 1.11
+	0x00,			// bCountryCode
+	0x01,			// bNumDescriptors
+	0x22,			// bDescriptorType[0] (HID)
+	0x20, 0x00,		// wDescriptorLength[0] 32
 
-	0x07,        // bLength
-	0x05,        // bDescriptorType (Endpoint)
-	0x81,        // bEndpointAddress (IN/D2H)
-	0x03,        // bmAttributes (Interrupt)
-	0x08, 0x00,  // wMaxPacketSize 8
-	0x05         // bInterval 5 (2^(5-1)=16 micro-frames)
+	0x07,			// bLength
+	0x05,			// bDescriptorType (Endpoint)
+	0x81,			// bEndpointAddress (IN/D2H)
+	0x03,			// bmAttributes (Interrupt)
+	0x08, 0x00,		// wMaxPacketSize 8
+	0x05 			// bInterval 5 (2^(5-1)=16 micro-frames)
 };
 
 static const uint8_t usbHidReportDescriptor[32] = {
-	0x06, 0x00, 0xFF,  // Usage Page (Vendor Defined 0xFF00)
-	0x09, 0x01,        // Usage (0x01)
-	0xA1, 0x01,        // Collection (Application)
-	0x09, 0x02,        //   Usage (0x02)
-	0x15, 0x00,        //   Logical Minimum (0)
-	0x25, 0xFF,        //   Logical Maximum (255)
-	0x75, 0x08,        //   Report Size (8)
-	0x95, 0x08,        //   Report Count (8)
-	0x81, 0x02,        //   Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
-	0x09, 0x03,        //   Usage (0x03)
-	0x15, 0x00,        //   Logical Minimum (0)
-	0x25, 0xFF,        //   Logical Maximum (255)
-	0x75, 0x08,        //   Report Size (8)
-	0x95, 0x40,        //   Report Count (64)
-	0x91, 0x02,        //   Output (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position,Non-volatile)
-	0xC0               // End Collection
+	0x06, 0x00, 0xFF,	// Usage Page (Vendor Defined 0xFF00)
+	0x09, 0x01,		// Usage (0x01)
+	0xA1, 0x01,		// Collection (Application)
+	0x09, 0x02,		// 	Usage (0x02)
+	0x15, 0x00,		// 	Logical Minimum (0)
+	0x25, 0xFF,		// 	Logical Maximum (255)
+	0x75, 0x08,		// 	Report Size (8)
+	0x95, 0x08,		// 	Report Count (8)
+	0x81, 0x02,		// 	Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
+	0x09, 0x03,		// 	Usage (0x03)
+	0x15, 0x00,		// 	Logical Minimum (0)
+	0x25, 0xFF,		// 	Logical Maximum (255)
+	0x75, 0x08,		// 	Report Size (8)
+	0x95, 0x40,		// 	Report Count (64)
+	0x91, 0x02,		// 	Output (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position,Non-volatile)
+	0xC0 			// End Collection
 };
 
 /* USB String Descriptors */

@@ -32,7 +32,7 @@
 
 /* HID Bootloader takes 4 kb flash. */
 #define USER_PROGRAM 0x08001000
-#define USER_CODE_FLASH0X8001000    ((uint32_t) 0x08001000)
+#define USER_CODE_FLASH0X8001000	((uint32_t) 0x08001000)
 
 typedef void (*funct_ptr)(void);
 
@@ -96,10 +96,10 @@ int main(int argc, char *argv[]) {
 	uint16_t magic_word = get_and_clear_magic_word();
 
 	pins_init();
-  
+
 	/* Wait 1uS so the pull-up settles... */
 	delay(72);
-  
+
 #if defined HAS_LED2_PIN
 	led2_off();
 #endif
@@ -115,8 +115,8 @@ int main(int argc, char *argv[]) {
 	 * mode and go to HID mode ...
 	 */
 	if ((magic_word == 0x424C) ||
-	    (GPIOB->IDR & GPIO_IDR_IDR2) ||
-	    (check_user_code(USER_CODE_FLASH0X8001000) == false)) {
+		(GPIOB->IDR & GPIO_IDR_IDR2) ||
+		(check_user_code(USER_CODE_FLASH0X8001000) == false)) {
 		if (magic_word == 0x424C) {
 		
 #if defined HAS_LED2_PIN

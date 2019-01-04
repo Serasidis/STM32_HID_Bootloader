@@ -123,7 +123,7 @@ void USB_Init(void (*EPHandlerPtr)(uint16_t), void (*ResetHandlerPtr)(void)) {
 	_SetCNTR(CNTR_FRES);
 
 	/* The following sequence is recommended:
-	 *  1- FRES = 0
+	 * 1- FRES = 0
 	 * 2- Wait until RESET flag = 1 (polling)
 	 * 3- clear ISTR register
 	 */
@@ -164,7 +164,7 @@ void USB_LP_CAN1_RX0_IRQHandler(void) {
 
 		/* Handle Reset */
 		if (READ_BIT(istr, ISTR_RESET)) {
-		  _SetISTR((uint16_t) CLR_RESET);
+			_SetISTR((uint16_t) CLR_RESET);
 			if (_USBResetHandler) {
 				_USBResetHandler();
 			}
@@ -172,7 +172,7 @@ void USB_LP_CAN1_RX0_IRQHandler(void) {
 
 		/* Handle Suspend */
 		if (READ_BIT(istr, ISTR_SUSP)) {
-		  _SetISTR((uint16_t) CLR_SUSP);
+			_SetISTR((uint16_t) CLR_SUSP);
 
 			/* If device address is assigned, then reset it */
 			if (_GetDADDR() & 0x007f) {
@@ -183,7 +183,7 @@ void USB_LP_CAN1_RX0_IRQHandler(void) {
 
 		/* Handle Wakeup */
 		if (READ_BIT(istr, ISTR_WKUP)) {
-		  _SetISTR((uint16_t) CLR_WKUP);
+			_SetISTR((uint16_t) CLR_WKUP);
 		}
 	}
 

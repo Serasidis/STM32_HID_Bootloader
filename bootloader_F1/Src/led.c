@@ -63,7 +63,7 @@ void pins_init(void) {
 	DISC_MODE;
 	DISC_LOW;
 #endif
-  
+
 #if defined PB2_PULLDOWN
 
 	/* Turn GPIOB clock on */

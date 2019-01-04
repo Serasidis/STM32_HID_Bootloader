@@ -42,7 +42,7 @@
 	#define LED2_MODE		SET_BIT(GPIOB->CRL, GPIO_CRL_MODE1)
 	#define LED2_ON			(GPIOB->BSRR = GPIO_BSRR_BS1)
 	#define LED2_OFF		(GPIOB->BRR = GPIO_BRR_BR1)
-  
+
 	//#define PB2_PULLDOWN
 
 #elif defined TARGET_GENERIC_F103_PD2
@@ -145,7 +145,7 @@
 	#define LED1_OFF		(GPIOB->BSRR = GPIO_BSRR_BS12)
 	#define LED1_ON			(GPIOB->BRR = GPIO_BRR_BR12)
 #else
-    #error "No config for this target"
+	#error "No config for this target"
 #endif
 
 #endif
