@@ -288,30 +288,50 @@ void HIDUSB_Reset(void) {
 	/* Initialize Flash Page Settings */
 	CurrentPage = MIN_PAGE;
 	CurrentPageOffset = 0;
-	_SetBTABLE(BTABLE_ADDRESS);
+
+	/* Set buffer descriptor table address in PMA memory */
+	*BTABLE = BTABLE_ADDRESS;
 
 	/* Initialize Endpoint 0 */
-	_SetEPType(ENDP0, EP_CONTROL);
-	_SetEPRxAddr(ENDP0, ENDP0_RXADDR);
-	_SetEPTxAddr(ENDP0, ENDP0_TXADDR);
-	_ClearEP_KIND(ENDP0);
-	_SetEPRxValid(ENDP0);
+	(*(EP0REG + ENDP0) = ((*(EP0REG + ENDP0)) &
+
+		/* Filter out all toggle bits except STAT_RX[1:0] */
+		(EP_CTR_RX | EPRX_STAT | EP_SETUP | EP_CTR_TX)) |
+
+		/* Define Endpoint 0 as CONTROL endpoint with no special kind */
+		((0 | EP_CONTROL | 0) ^
+
+		/* Toggle STAT_RX[1:0] to VALID */
+		EP_RX_VALID));
+
+	/* Set transmission buffer address for endpoint 0 in buffer descriptor table */
+	*((volatile uint32_t *) ((BTABLE_ADDRESS + ENDP0 * 8 + 0) * 2 + PMAAddr)) = ENDP0_TXADDR;
+
+	/* Set reception buffer address for endpoint 0 in buffer descriptor table */
+	*((volatile uint32_t *) ((BTABLE_ADDRESS + ENDP0 * 8 + 4) * 2 + PMAAddr)) = ENDP0_RXADDR;
+	RxTxBuffer[0].MaxPacketSize = MAX_PACKET_SIZE;
 
 	/* Initialize Endpoint 1 */
-	_SetEPType(ENDP1, EP_INTERRUPT);
-	_SetEPTxAddr(ENDP1, ENDP1_TXADDR);
-	_SetEPTxCount(ENDP1, MAX_PACKET_SIZE);
-	_SetEPRxStatus(ENDP1, EP_RX_DIS);
-	_SetEPTxStatus(ENDP1, EP_TX_NAK);
+	(*(EP0REG + ENDP1) = ((*(EP0REG + ENDP1)) &
 
-	/* Set address in every used endpoint */
-	for (int i = 0; i < EP_NUM; i++) {
-		_SetEPAddress((uint8_t ) i, (uint8_t ) i);
-		RxTxBuffer[i].MaxPacketSize = MAX_PACKET_SIZE;
-	}
+		/* Filter out all toggle bits except STAT_RX[1:0] and STAT_TX[1:0] */
+		(EP_CTR_RX | EPRX_STAT | EP_SETUP | EP_CTR_TX | EPTX_STAT)) |
 
-	/* Set device address and enable function */
-	_SetDADDR(0 | DADDR_EF);
+		/* Define Endpoint 1 as INTERRUPT endpoint with no special kind */
+		((1 | EP_INTERRUPT | 0) ^
+
+		/* Toggle STAT_RX[1:0] to DISABLE and STAT_TX[1:0] to NAK */
+		(EP_RX_DIS | EP_TX_NAK)));
+
+	/* Set transmission buffer address for endpoint 1 in buffer descriptor table */
+	*((volatile uint32_t *) ((BTABLE_ADDRESS + ENDP1 * 8 + 0) * 2 + PMAAddr)) = ENDP1_TXADDR;
+
+	/* Set transmission byte count for endpoint 1 in buffer descriptor table */
+	*((volatile uint32_t *) ((BTABLE_ADDRESS + ENDP1 * 8 + 2) * 2 + PMAAddr)) = MAX_PACKET_SIZE;
+	RxTxBuffer[1].MaxPacketSize = MAX_PACKET_SIZE;
+
+	/* Clear device address and enable USB function */
+	*DADDR = DADDR_EF | 0;
 }
 
 void HIDUSB_EPHandler(uint16_t Status) {
