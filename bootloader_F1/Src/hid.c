@@ -177,55 +177,54 @@ static const uint8_t USB_ProductStringDescriptor[] = {
 };
 
 static void HIDUSB_GetDescriptor(USB_SetupPacket *SPacket) {
+	uint16_t *descriptor = 0;
+	uint16_t length = 0;
 
 	switch (SPacket->wValue.H) {
 	case USB_DEVICE_DESC_TYPE:
-		USB_SendData(0, (uint16_t *) USB_DeviceDescriptor,
-			SPacket->wLength > sizeof (USB_DeviceDescriptor) ?
-				sizeof (USB_DeviceDescriptor) : SPacket->wLength);
+		descriptor =  (uint16_t *) USB_DeviceDescriptor;
+		length = sizeof (USB_DeviceDescriptor);
 		break;
 
 	case USB_CFG_DESC_TYPE:
-		USB_SendData(0, (uint16_t *) USB_ConfigurationDescriptor,
-			SPacket->wLength > sizeof (USB_ConfigurationDescriptor) ?
-				sizeof (USB_ConfigurationDescriptor) : SPacket->wLength);
+		descriptor = (uint16_t *) USB_ConfigurationDescriptor;
+		length =  sizeof (USB_ConfigurationDescriptor);
 		break;
 
 	case USB_REPORT_DESC_TYPE:
-		USB_SendData(0, (uint16_t *) USB_ReportDescriptor,
-			SPacket->wLength > sizeof (USB_ReportDescriptor) ?
-				sizeof (USB_ReportDescriptor) : SPacket->wLength);
+		descriptor = (uint16_t *) USB_ReportDescriptor;
+		length =  sizeof (USB_ReportDescriptor);
 		break;
 
 	case USB_STR_DESC_TYPE:
 		switch (SPacket->wValue.L) {
 		case 0x00:
-			USB_SendData(0, (uint16_t *)USB_LangIDStringDescriptor,
-				SPacket->wLength > sizeof (USB_LangIDStringDescriptor) ?
-					sizeof (USB_LangIDStringDescriptor) : SPacket->wLength);
+			descriptor = (uint16_t *) USB_LangIDStringDescriptor;
+			length = sizeof (USB_LangIDStringDescriptor);
 			break;
 
 		case 0x01:
-			USB_SendData(0, (uint16_t *) USB_VendorStringDescriptor,
-				SPacket->wLength > sizeof (USB_VendorStringDescriptor) ?
-					sizeof (USB_VendorStringDescriptor) : SPacket->wLength);
+			descriptor = (uint16_t *) USB_VendorStringDescriptor;
+			length = sizeof (USB_VendorStringDescriptor);
 			break;
 
 		case 0x02:
-			USB_SendData(0, (uint16_t *) USB_ProductStringDescriptor,
-				SPacket->wLength > sizeof (USB_ProductStringDescriptor) ?
-					sizeof (USB_ProductStringDescriptor) : SPacket->wLength);
+			descriptor = (uint16_t *) USB_ProductStringDescriptor;
+			length = sizeof (USB_ProductStringDescriptor);
 			break;
 
 		default:
-			USB_SendData(0, 0, 0);
+			break;
 		}
 		break;
 
 	default:
-		USB_SendData(0, 0, 0);
 		break;
 	}
+	if (length > SPacket->wLength) {
+		length = SPacket->wLength;
+	}
+	USB_SendData(0, descriptor, length);
 }
 
 static uint8_t HIDUSB_PacketIsCommand(void) {
