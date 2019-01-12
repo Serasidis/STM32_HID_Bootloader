@@ -164,17 +164,13 @@ void USB_LP_CAN1_RX0_IRQHandler(void) {
 
 			/* Handle data on EP */
 			_SetISTR((uint16_t) CLR_CTR);
-			if (EPHandler) {
-				EPHandler(_GetISTR());
-			}
+			EPHandler(_GetISTR());
 		}
 
 		/* Handle Reset */
 		if (READ_BIT(istr, ISTR_RESET)) {
 			_SetISTR((uint16_t) CLR_RESET);
-			if (USBResetHandler) {
-				USBResetHandler();
-			}
+			USBResetHandler();
 		}
 
 		/* Handle Suspend */
