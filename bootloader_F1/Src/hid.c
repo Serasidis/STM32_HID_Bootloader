@@ -228,18 +228,19 @@ static void HIDUSB_GetDescriptor(USB_SetupPacket *SPacket) {
 }
 
 static uint8_t HIDUSB_PacketIsCommand(void) {
-	uint8_t hasdata = 0;
+	size_t i;
 
-	for (int i = sizeof (CommandSignature) + 1; i < COMMAND_SIZE; i++) {
-		hasdata |= PageData[i];
-	}
-	if (hasdata) {
-		return 0;
-	}
-	if (memcmp(PageData, CommandSignature, sizeof (CommandSignature)) == 0) {
-		return 1;
-	}
-	return 0;
+	for (i = 0; i < sizeof (CommandSignature); i++) {
+		if (PageData[i] != CommandSignature[i]) {
+			return 0;
+		}
+ 	}
+	for (i++; i < COMMAND_SIZE; i++) {
+		if (PageData[i]) {
+			return 0;
+		}
+ 	}
+	return 1;
 }
 
 static void HIDUSB_HandleData(uint8_t *data) {
