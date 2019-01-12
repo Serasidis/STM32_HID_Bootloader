@@ -39,34 +39,30 @@ static void (*EPHandler)(uint16_t) = NULL;
 static void (*USBResetHandler)(void) = NULL;
 
 void USB_PMA2Buffer(uint8_t EPn) {
-	uint8_t Count = RxTxBuffer[EPn].RXL = (_GetEPRxCount(EPn) & 0x3FF);
-	uint32_t *Address = (uint32_t *) (PMAAddr + _GetEPRxAddr(EPn) * 2);
+	volatile uint32_t *btable_addr = (volatile uint32_t *) ((((uint16_t) *BTABLE) + EPn * 8) * 2 + PMAAddr);
+	uint32_t Count = RxTxBuffer[EPn].RXL = btable_addr[3] & 0x3ff;
+	uint32_t *Address = (uint32_t *) (PMAAddr + btable_addr[2] * 2);
 	uint16_t *Destination = (uint16_t *) RxTxBuffer[EPn].RXB;
 
-	for (uint8_t i = 0; i < Count; i++) {
-		*(uint16_t *) Destination = *(uint16_t *) Address;
-		Destination++;
-		Address++;
+	for (uint32_t i = 0; i < Count; i++) {
+		*Destination++ = *Address++;
 	}
 }
 
 void USB_Buffer2PMA(uint8_t EPn) {
-	uint32_t *Destination;
-	uint8_t Count;
-
-	Count = RxTxBuffer[EPn].TXL <= RxTxBuffer[EPn].MaxPacketSize ?
+	volatile uint32_t *btable_addr = (volatile uint32_t *) ((((uint16_t) *BTABLE) + EPn * 8) * 2 + PMAAddr);
+	uint32_t Count = RxTxBuffer[EPn].TXL <= RxTxBuffer[EPn].MaxPacketSize ?
 		RxTxBuffer[EPn].TXL : RxTxBuffer[EPn].MaxPacketSize;
-	_SetEPTxCount(EPn, Count);
-	if (Count == 0) {
-		return;
-	}
-	Destination = (uint32_t *) (PMAAddr + _GetEPTxAddr(EPn) * 2);
-	for (uint8_t i = 0; i < (Count + 1) / 2; i++) {
-		*(uint32_t *) Destination = *(uint16_t *) RxTxBuffer[EPn].TXB;
-		Destination++;
-		RxTxBuffer[EPn].TXB++;
+	uint16_t *Address = RxTxBuffer[EPn].TXB;
+	uint32_t *Destination = (uint32_t *) (PMAAddr + btable_addr[0] * 2);
+
+	/* Set transmission byte count in buffer descriptor table */
+	btable_addr[1] = Count;
+	for (uint32_t i = (Count + 1) / 2; i; i--) {
+		*Destination++ = *Address++;
 	}
 	RxTxBuffer[EPn].TXL -= Count;
+	RxTxBuffer[EPn].TXB = Address;
 }
 
 void USB_SendData(uint8_t EPn, uint16_t *Data, uint16_t Length) {
@@ -76,7 +72,13 @@ void USB_SendData(uint8_t EPn, uint16_t *Data, uint16_t Length) {
 	RxTxBuffer[EPn].TXL = Length;
 	RxTxBuffer[EPn].TXB = Data;
 	USB_Buffer2PMA(EPn);
-	_SetEPTxValid(EPn);
+	*(EP0REG + EPn) = (((*(EP0REG + EPn)) &
+
+		/* Filter out all toggle bits except STAT_TX[1:0] */
+		EPTX_DTOGMASK) ^
+
+		/* Toggle STAT_TX[1:0] to VALID */
+		EP_TX_VALID);
 }
 
 void USB_Shutdown(void) {
