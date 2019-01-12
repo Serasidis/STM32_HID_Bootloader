@@ -14,20 +14,29 @@
 *
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+*
+* Modified January 2019
+*	by Michel Stempin <michel.stempin@wanadoo.fr>
+*	Cleanup and optimizations
+*
+*/
 
 #include <stm32f10x.h>
 #include <stdlib.h>
 
 #include "usb.h"
 
+#define CNTR_MASK	(CNTR_RESETM | CNTR_SUSPM | CNTR_WKUPM)
+#define ISTR_MASK	(ISTR_CTR | ISTR_RESET | ISTR_SUSP | ISTR_WKUP)
+
 USB_RxTxBuf_t RxTxBuffer[MAX_EP_NUM];
 
 volatile uint8_t DeviceAddress = 0;
-volatile uint16_t DeviceConfigured = 0, DeviceStatus = 0;
+volatile uint16_t DeviceConfigured = 0;
+const uint16_t DeviceStatus = 0;
 
-static void (*_EPHandler)(uint16_t) = NULL;
-static void (*_USBResetHandler)(void) = NULL;
+static void (*EPHandler)(uint16_t) = NULL;
+static void (*USBResetHandler)(void) = NULL;
 
 void USB_PMA2Buffer(uint8_t EPn) {
 	uint8_t Count = RxTxBuffer[EPn].RXL = (_GetEPRxCount(EPn) & 0x3FF);
@@ -71,26 +80,24 @@ void USB_SendData(uint8_t EPn, uint16_t *Data, uint16_t Length) {
 }
 
 void USB_Shutdown(void) {
-	SET_BIT(RCC->APB2ENR, RCC_APB2ENR_IOPAEN);
 
 	/* Disable USB IRQ */
 	NVIC_DisableIRQ(USB_LP_CAN1_RX0_IRQn);
 	_SetISTR(0);
-	DeviceConfigured = DeviceStatus = 0;
-	_EPHandler = NULL;
-	_USBResetHandler = NULL;
+	DeviceConfigured = 0;
+	EPHandler = NULL;
+	USBResetHandler = NULL;
 
 	/* Turn USB Macrocell off */
 	_SetCNTR(CNTR_FRES|CNTR_PDWN);
 
-	/* PA_12 output mode: General purpose output open drain (b01) */
-	SET_BIT(GPIOA->CRH, GPIO_CRH_CNF12_0);
-	CLEAR_BIT(GPIOA->CRH, GPIO_CRH_CNF12_1);
+	/* PA12: General purpose output 50 MHz open drain */
+	SET_BIT(RCC->APB2ENR, RCC_APB2ENR_IOPAEN);
+	MODIFY_REG(GPIOA->CRH,
+		GPIO_CRH_CNF12 | GPIO_CRH_MODE12,
+		GPIO_CRH_CNF12_0 | GPIO_CRH_MODE12);
 
-	/* Set PA_12 set as: Output mode, max speed 50 MHz. */
-	SET_BIT(GPIOA->CRH, GPIO_CRH_MODE12);
-
-	/* Sinks A12 to GND */
+	/* Sinks PA12 to GND */
 	GPIOA->BRR = GPIO_BRR_BR12;
 
 	/* Disable USB Clock on APB1 */
@@ -105,18 +112,18 @@ void USB_Init(void (*EPHandlerPtr)(uint16_t), void (*ResetHandlerPtr)(void)) {
 	for (int i = 0; i < MAX_EP_NUM; i++) {
 		RxTxBuffer[i].RXL = RxTxBuffer[i].TXL = 0;
 	}
-	_EPHandler = EPHandlerPtr;
-	_USBResetHandler = ResetHandlerPtr;
+	EPHandler = EPHandlerPtr;
+	USBResetHandler = ResetHandlerPtr;
+
+	/* PA12: General purpose Input Float */
 	SET_BIT(RCC->APB2ENR, RCC_APB2ENR_IOPAEN);
-
-	/* PA_12 output mode: General purpose Input Float (b01) */
-	SET_BIT(GPIOA->CRH, GPIO_CRH_CNF12_0);
-	CLEAR_BIT(GPIOA->CRH, GPIO_CRH_CNF12_1);
-
-	/* Set PA_12 to Input mode */
-	CLEAR_BIT(GPIOA->CRH, GPIO_CRH_MODE12);
-	DeviceConfigured = DeviceStatus = 0;
+	MODIFY_REG(GPIOA->CRH,
+		GPIO_CRH_CNF12 | GPIO_CRH_MODE12,
+		GPIO_CRH_CNF12_0);
+	DeviceConfigured = 0;
 	SET_BIT(RCC->APB1ENR, RCC_APB1ENR_USBEN);
+
+	/* Enable USB IRQ in core */
 	NVIC_EnableIRQ(USB_LP_CAN1_RX0_IRQn);
 
 	/* CNTR_FRES = 1, CNTR_PWDN = 0 */
@@ -140,7 +147,7 @@ void USB_Init(void (*EPHandlerPtr)(uint16_t), void (*ResetHandlerPtr)(void)) {
 	_SetISTR(0);
 
 	/* Set interrupt mask */
-	_SetCNTR(CNTR_RESETM | CNTR_SUSPM | CNTR_WKUPM);
+	_SetCNTR(CNTR_MASK);
 }
 
 uint16_t USB_IsDeviceConfigured(void) {
@@ -150,23 +157,23 @@ uint16_t USB_IsDeviceConfigured(void) {
 void USB_LP_CAN1_RX0_IRQHandler(void) {
 	volatile uint16_t istr;
 
-	while ((istr = _GetISTR() & (ISTR_CTR | ISTR_RESET | ISTR_SUSP | ISTR_WKUP))) {
+	while ((istr = _GetISTR() & ISTR_MASK) != 0) {
 
 		/* Handle EP data */
 		if (READ_BIT(istr, ISTR_CTR)) {
 
 			/* Handle data on EP */
 			_SetISTR((uint16_t) CLR_CTR);
-			if (_EPHandler) {
-				_EPHandler(_GetISTR());
+			if (EPHandler) {
+				EPHandler(_GetISTR());
 			}
 		}
 
 		/* Handle Reset */
 		if (READ_BIT(istr, ISTR_RESET)) {
 			_SetISTR((uint16_t) CLR_RESET);
-			if (_USBResetHandler) {
-				_USBResetHandler();
+			if (USBResetHandler) {
+				USBResetHandler();
 			}
 		}
 

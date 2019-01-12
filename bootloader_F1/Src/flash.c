@@ -15,7 +15,8 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 *
-* Split from hid.c by Michel Stempin <michel.stempin@wanadoo.fr>
+* Split January 2019 from hid.c
+*	by Michel Stempin <michel.stempin@wanadoo.fr>
 */
 
 #include <stm32f10x.h>

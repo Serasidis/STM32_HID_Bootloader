@@ -19,6 +19,11 @@
 #ifndef HID_H_
 #define HID_H_
 
+/* Global Variables */
+extern volatile bool UploadStarted;
+extern volatile bool UploadFinished;
+
+/* Function Prototypes */
 void HIDUSB_Reset(void);
 void HIDUSB_EPHandler(uint16_t Status);
 

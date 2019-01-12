@@ -19,9 +19,11 @@
 *	by Vassilis Serasidis <info@serasidis.gr>
 *	This HID bootloader works with STM32F103 + STM32duino + Arduino IDE <http://www.stm32duino.com/>
 *
+* Modified January 2019
+*	by Michel Stempin <michel.stempin@wanadoo.fr>
+*	Cleanup and optimizations
+*
 */
-
-
 
 #include <stm32f10x.h>
 #include <stdbool.h>
@@ -31,13 +33,10 @@
 #include "led.h"
 
 /* HID Bootloader takes 4 kb flash. */
-#define USER_PROGRAM 0x08001000
-#define USER_CODE_FLASH0X8001000	((uint32_t) 0x08001000)
+#define USER_PROGRAM			0x08001000
 
 typedef void (*funct_ptr)(void);
 
-bool uploadStarted;
-bool uploadFinished;
 
 static void delay(uint32_t tmr) {
 	for (uint32_t i = 0; i < tmr; i++) {
@@ -46,10 +45,10 @@ static void delay(uint32_t tmr) {
 }
 
 static bool check_flash_complete(void) {
-	if (uploadFinished == true) {
+	if (UploadFinished == true) {
 		return true;
 	}
-	if (uploadStarted == false) {
+	if (UploadStarted == false) {
 
 #if defined HAS_LED1_PIN
 		led_on();
@@ -65,6 +64,8 @@ static bool check_flash_complete(void) {
 static bool check_user_code(u32 usrAddr) {
 	u32 sp = *(vu32 *) usrAddr;
 
+	/* Check if the stack pointer in the vector table points in
+	   RAM */
 	if ((sp & 0x2FFE0000) == 0x20000000) {
 		return true;
 	} else {
@@ -104,8 +105,8 @@ int main(int argc, char *argv[]) {
 	led2_off();
 #endif
 		
-	uploadStarted = false;
-	uploadFinished = false;
+	UploadStarted = false;
+	UploadFinished = false;
 	uint32_t userProgramAddress = *(volatile uint32_t *) (USER_PROGRAM + 0x04);
 	funct_ptr userProgram = (funct_ptr) userProgramAddress;
 
@@ -116,7 +117,7 @@ int main(int argc, char *argv[]) {
 	 */
 	if ((magic_word == 0x424C) ||
 		(GPIOB->IDR & GPIO_IDR_IDR2) ||
-		(check_user_code(USER_CODE_FLASH0X8001000) == false)) {
+		(check_user_code(USER_PROGRAM) == false)) {
 		if (magic_word == 0x424C) {
 		
 #if defined HAS_LED2_PIN

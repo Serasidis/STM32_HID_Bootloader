@@ -714,8 +714,12 @@ enum EP_BUF_NUM
 #define _GetEPDblBuf0Count(bEpNum) (_GetEPTxCount(bEpNum))
 #define _GetEPDblBuf1Count(bEpNum) (_GetEPRxCount(bEpNum))
 
-/* Function Prototypes */
+/* Global Variables */
+extern volatile uint8_t DeviceAddress;
+extern volatile uint16_t DeviceConfigured;
+extern const uint16_t DeviceStatus;
 
+/* Function Prototypes */
 void USB_PMA2Buffer(uint8_t EPn);
 void USB_Buffer2PMA(uint8_t EPn);
 void USB_SendData(uint8_t EPn, uint16_t *Data, uint16_t Length);
