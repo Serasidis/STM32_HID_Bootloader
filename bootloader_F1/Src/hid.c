@@ -244,7 +244,7 @@ static uint8_t HIDUSB_PacketIsCommand(void) {
 }
 
 static void HIDUSB_HandleData(uint8_t *data) {
-	uint32_t PageAddress;
+	uint16_t *PageAddress;
 
 	memcpy(PageData + CurrentPageOffset, data, MAX_PACKET_SIZE);
 	CurrentPageOffset += MAX_PACKET_SIZE;
@@ -273,8 +273,8 @@ static void HIDUSB_HandleData(uint8_t *data) {
 	} else {
 		if (CurrentPageOffset >= PAGE_SIZE) {
 			led_on();
-			PageAddress = FLASH_BASE_ADDRESS + (CurrentPage * PAGE_SIZE);
-			FLASH_WritePage(PageAddress, PageData, PAGE_SIZE);
+			PageAddress = (uint16_t * ) (FLASH_BASE_ADDRESS + (CurrentPage * PAGE_SIZE));
+			FLASH_WritePage(PageAddress, (uint16_t *) PageData, PAGE_SIZE / 2);
 			CurrentPage++;
 			CurrentPageOffset = 0;
 			USB_SendData(ENDP1, (uint16_t *) CommandSendNextData,
