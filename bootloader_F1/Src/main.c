@@ -40,7 +40,7 @@ typedef void (*funct_ptr)(void);
 
 static void delay(uint32_t tmr) {
 	for (uint32_t i = 0; i < tmr; i++) {
-		asm volatile ("nop\n");
+		__NOP();
 	}
 }
 
@@ -153,7 +153,7 @@ int main(int argc, char *argv[]) {
 	LED1_CLOCK_DIS;
 	//CLEAR_BIT(RCC->APB2ENR, RCC_APB2ENR_IOPBEN);
 	SCB->VTOR = USER_PROGRAM;
-	asm volatile("msr msp, %0"::"g"(*(volatile u32 *) USER_PROGRAM));
+	__set_MSP((*(volatile uint32_t *) USER_PROGRAM));
 	userProgram();
 	for (;;) {
 		;
