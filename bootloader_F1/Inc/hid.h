@@ -27,7 +27,4 @@ extern volatile bool UploadFinished;
 void HIDUSB_Reset(void);
 void HIDUSB_EPHandler(uint16_t Status);
 
-__attribute__((weak)) void HIDUSB_DataReceivedHandler(uint16_t *Data,
-		uint16_t Length);
-
 #endif /* HID_H_ */

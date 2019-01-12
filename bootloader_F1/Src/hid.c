@@ -371,13 +371,6 @@ void HIDUSB_EPHandler(uint16_t Status) {
 				}
 			}
 
-		} else {
-
-			/* Got data from another EP
-			 * Call user function
-			 */
-			HIDUSB_DataReceivedHandler(RxTxBuffer[EPn].RXB,
-					RxTxBuffer[EPn].RXL);
 		}
 		_ClearEP_CTR_RX(EPn);
 		_SetEPRxValid(EPn);
@@ -398,9 +391,4 @@ void HIDUSB_EPHandler(uint16_t Status) {
 			_SetEPTxStatus(ENDP1, EP_TX_NAK);
 		}
 	}
-}
-
-__attribute__((weak)) void HIDUSB_DataReceivedHandler(uint16_t *Data, uint16_t Length) {
-	(void) Data;
-	(void) Length;
 }
