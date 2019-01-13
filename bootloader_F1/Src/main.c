@@ -32,11 +32,23 @@
 #include "hid.h"
 #include "led.h"
 
+/* Bootloader size */
+#define BOOTLOADER_SIZE			(4 * 1024)
+
+/* SRAM size */
+#define SRAM_SIZE			(20 * 1024)
+
 /* HID Bootloader takes 4 kb flash. */
-#define USER_PROGRAM			0x08001000
+#define USER_PROGRAM			(FLASH_BASE + BOOTLOADER_SIZE)
 
 typedef void (*funct_ptr)(void);
 
+extern void Reset_Handler(void);
+
+void _init(void);
+void __libc_init_array(void);
+
+uint32_t RamVectors[37] = {1};
 
 static void delay(uint32_t tmr) {
 	for (uint32_t i = 0; i < tmr; i++) {
@@ -66,7 +78,7 @@ static bool check_user_code(u32 usrAddr) {
 
 	/* Check if the stack pointer in the vector table points in
 	   RAM */
-	if ((sp & 0x2FFE0000) == 0x20000000) {
+	if ((sp & 0x2FFE0000) == SRAM_BASE) {
 		return true;
 	} else {
 		return false;
@@ -100,6 +112,12 @@ void __libc_init_array(void) {
 int main(int argc, char *argv[]) {
 	(void) argc;
 	(void) argv;
+
+	RamVectors[0] = SRAM_BASE + SRAM_SIZE;
+	RamVectors[1] = (uint32_t) Reset_Handler;
+	RamVectors[36] = (uint32_t) USB_LP_CAN1_RX0_IRQHandler;
+	SCB->VTOR = (volatile uint32_t) RamVectors;
+
 	uint16_t magic_word = get_and_clear_magic_word();
 
 	pins_init();
