@@ -66,11 +66,8 @@ volatile bool UploadStarted;
 /* Upload finished flag */
 volatile bool UploadFinished;
 
-/* Received command */
-static const uint8_t CommandSignature[] = {'B', 'T', 'L', 'D', 'C', 'M', 'D'};
-
-/* Sent command */
-static const uint8_t CommandSendNextData[] = {'B', 'T', 'L', 'D', 'C', 'M', 'D', 2};
+/* Sent command (Received command is the same minus last byte) */
+static const uint8_t Command[] = {'B', 'T', 'L', 'D', 'C', 'M', 'D', 2};
 
 /* Flash page buffer */
 static uint8_t PageData[PAGE_SIZE];
@@ -230,17 +227,17 @@ static void HIDUSB_GetDescriptor(USB_SetupPacket *SPacket) {
 static uint8_t HIDUSB_PacketIsCommand(void) {
 	size_t i;
 
-	for (i = 0; i < sizeof (CommandSignature); i++) {
-		if (PageData[i] != CommandSignature[i]) {
-			return 0;
+	for (i = 0; i < sizeof (Command) - 1; i++) {
+		if (PageData[i] != Command[i]) {
+			return 0xff;
 		}
  	}
 	for (i++; i < COMMAND_SIZE; i++) {
 		if (PageData[i]) {
-			return 0;
+			return 0xff;
 		}
  	}
-	return 1;
+	return PageData[sizeof (Command) - 1];
 }
 
 static void HIDUSB_HandleData(uint8_t *data) {
@@ -249,38 +246,34 @@ static void HIDUSB_HandleData(uint8_t *data) {
 	memcpy(PageData + CurrentPageOffset, data, MAX_PACKET_SIZE);
 	CurrentPageOffset += MAX_PACKET_SIZE;
 	if (CurrentPageOffset == COMMAND_SIZE) {
-		if (HIDUSB_PacketIsCommand()) {
-			switch (PageData[sizeof (CommandSignature)]) {
+		switch (HIDUSB_PacketIsCommand()) {
 
-			case 0x00:
+		case 0x00:
 
-				/* Reset Page Command */
-				UploadStarted = true;
-				CurrentPage = MIN_PAGE;
-				CurrentPageOffset = 0;
-			break;
-
-			case 0x01:
-
-				/* Reboot MCU Command */
-				UploadFinished = true;
-			break;
-
-			default:
-				break;
-			}
-		}
-	} else {
-		if (CurrentPageOffset >= PAGE_SIZE) {
-			led_on();
-			PageAddress = (uint16_t * ) (FLASH_BASE_ADDRESS + (CurrentPage * PAGE_SIZE));
-			FLASH_WritePage(PageAddress, (uint16_t *) PageData, PAGE_SIZE / 2);
-			CurrentPage++;
+			/* Reset Page Command */
+			UploadStarted = true;
+			CurrentPage = MIN_PAGE;
 			CurrentPageOffset = 0;
-			USB_SendData(ENDP1, (uint16_t *) CommandSendNextData,
-				sizeof (CommandSendNextData));
-			led_off();
+		break;
+
+		case 0x01:
+
+			/* Reboot MCU Command */
+			UploadFinished = true;
+		break;
+
+		default:
+			break;
 		}
+	} else if (CurrentPageOffset >= PAGE_SIZE) {
+		led_on();
+		PageAddress = (uint16_t * ) (FLASH_BASE_ADDRESS + (CurrentPage * PAGE_SIZE));
+		FLASH_WritePage(PageAddress, (uint16_t *) PageData, PAGE_SIZE / 2);
+		CurrentPage++;
+		CurrentPageOffset = 0;
+		USB_SendData(ENDP1, (uint16_t *) Command,
+			sizeof (Command));
+		led_off();
 	}
 }
 
