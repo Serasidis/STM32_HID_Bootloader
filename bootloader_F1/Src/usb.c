@@ -72,13 +72,10 @@ void USB_SendData(uint8_t EPn, uint16_t *Data, uint16_t Length) {
 	RxTxBuffer[EPn].TXL = Length;
 	RxTxBuffer[EPn].TXB = Data;
 	USB_Buffer2PMA(EPn);
-	*(EP0REG + EPn) = (((*(EP0REG + EPn)) &
-
-		/* Filter out all toggle bits except STAT_TX[1:0] */
-		EPTX_DTOGMASK) ^
-
-		/* Toggle STAT_TX[1:0] to VALID */
-		EP_TX_VALID);
+	TOGGLE_REG(EP0REG[EPn],
+		   EP_DTOG_RX | EPRX_STAT | EP_DTOG_TX,
+		   0,
+		   EP_TX_VALID);
 }
 
 void USB_Shutdown(void) {

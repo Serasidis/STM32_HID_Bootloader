@@ -287,16 +287,10 @@ void HIDUSB_Reset(void) {
 	*BTABLE = BTABLE_OFFSET;
 
 	/* Initialize Endpoint 0 */
-	(*(EP0REG + ENDP0) = ((*(EP0REG + ENDP0)) &
-
-		/* Filter out all toggle bits except STAT_RX[1:0] */
-		(EP_CTR_RX | EPRX_STAT | EP_SETUP | EP_CTR_TX)) |
-
-		/* Define Endpoint 0 as CONTROL endpoint with no special kind */
-		((0 | EP_CONTROL | 0) ^
-
-		/* Toggle STAT_RX[1:0] to VALID */
-		EP_RX_VALID));
+	TOGGLE_REG(EP0REG[ENDP0],
+		   EP_DTOG_RX | EP_T_FIELD | EP_KIND | EP_DTOG_TX | EPTX_STAT | EPADDR_FIELD,
+		   0 | EP_CONTROL | 0,
+		   EP_RX_VALID);
 
 	/* Set transmission buffer address for endpoint 0 in buffer descriptor table */
 	BTABLE_ADDR_FROM_OFFSET(ENDP0, BTABLE_OFFSET)[USB_ADDRn_TX] = ENDP0_TXADDR;
@@ -306,16 +300,10 @@ void HIDUSB_Reset(void) {
 	RxTxBuffer[0].MaxPacketSize = MAX_PACKET_SIZE;
 
 	/* Initialize Endpoint 1 */
-	(*(EP0REG + ENDP1) = ((*(EP0REG + ENDP1)) &
-
-		/* Filter out all toggle bits except STAT_RX[1:0] and STAT_TX[1:0] */
-		(EP_CTR_RX | EPRX_STAT | EP_SETUP | EP_CTR_TX | EPTX_STAT)) |
-
-		/* Define Endpoint 1 as INTERRUPT endpoint with no special kind */
-		((1 | EP_INTERRUPT | 0) ^
-
-		/* Toggle STAT_RX[1:0] to DISABLE and STAT_TX[1:0] to NAK */
-		(EP_RX_DIS | EP_TX_NAK)));
+	TOGGLE_REG(EP0REG[ENDP1],
+		   EP_DTOG_RX | EP_T_FIELD | EP_KIND | EP_DTOG_TX | EPADDR_FIELD,
+		   1 | EP_INTERRUPT | 0,
+		   EP_RX_DIS | EP_TX_NAK);
 
 	/* Set transmission buffer address for endpoint 1 in buffer descriptor table */
 	BTABLE_ADDR_FROM_OFFSET(ENDP1, BTABLE_OFFSET)[USB_ADDRn_TX] = ENDP1_TXADDR;
@@ -373,12 +361,9 @@ void HIDUSB_EPHandler(uint16_t Status) {
 
 				default:
 					USB_SendData(0, 0, 0);
-					*(EP0REG + ENDP0) = (((*(EP0REG + ENDP0)) &
-
-						/* Filter out all toggle bits except STAT_TX[1:0] */
-						EPTX_DTOGMASK) ^
-
-						/* Toggle STAT_TX[1:0] to STALL */
+					TOGGLE_REG(EP0REG[ENDP0],
+						EP_DTOG_RX | EPRX_STAT | EP_DTOG_TX,
+						0,
 						EP_TX_STALL);
 					break;
 				}
@@ -389,14 +374,9 @@ void HIDUSB_EPHandler(uint16_t Status) {
 			}
 
 		}
-		*(EP0REG + EPn) = (((*(EP0REG + EPn)) &
-
-			/* Filter out all toggle bits except STAT_RX[1:0]
-			 * Clear CTR_RX
-			 */
-			(~EP_CTR_RX & EPRX_DTOGMASK)) ^
-
-			/* Toggle STAT_RX[1:0] to VALID */
+		TOGGLE_REG(EP0REG[EPn],
+			EP_CTR_RX | EP_DTOG_RX | EPTX_STAT | EP_DTOG_TX,
+			0,
 			EP_RX_VALID);
 	}
 	if (EP & EP_CTR_TX) {
@@ -409,14 +389,9 @@ void HIDUSB_EPHandler(uint16_t Status) {
 			DeviceAddress = 0;
 		}
 		USB_Buffer2PMA(EPn);
-		*(EP0REG + EPn) = (((*(EP0REG + EPn)) &
-
-			/* Filter out all toggle bits except STAT_TX[1:0]
-			 * Clear CTR_TX
-			 */
-			(~EP_CTR_TX & EPTX_DTOGMASK)) ^
-
-			/* Toggle STAT_TX[1:0] to VALID or NAK if EPn 1 */
-			((EPn == ENDP1) ? EP_TX_NAK : EP_TX_VALID));
+		TOGGLE_REG(EP0REG[EPn],
+			EP_DTOG_RX | EPRX_STAT | EP_CTR_TX | EP_DTOG_TX,
+			0,
+			(EPn == ENDP1) ? EP_TX_NAK : EP_TX_VALID);
 	}
 }
