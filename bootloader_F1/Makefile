@@ -6,7 +6,6 @@ VECTOR_TABLE_OFFSET = 0x0000
 
 C_SRCS = Src/main.c Src/usb.c Src/hid.c Src/led.c Src/flash.c
 
-DEVICE_ASM_SRCS += CMSIS/Device/ST/STM32F10x/Source/Templates/gcc/startup_stm32f10x_md.s
 DEVICE_C_SRCS += CMSIS/Device/ST/STM32F10x/Source/Templates/system_stm32f10x.c
 
 # Be silent per default, but 'make V=1' will show all compiler calls.
@@ -25,12 +24,6 @@ C_SRCS += $(DEVICE_C_SRCS)
 SRCS += $(C_SRCS)
 vpath %.c $(sort $(dir $(C_SRCS)))
 OBJS = $(addprefix $(BUILD_DIR)/,$(notdir $(C_SRCS:.c=.o)))
-ASM_SRCS += $(DEVICE_ASM_SRCS)
-SRCS += $(ASM_SRCS)
-vpath %.s $(sort $(dir $(DEVICE_ASM_SRCS)))
-OBJS += $(addprefix $(BUILD_DIR)/,$(notdir $(DEVICE_ASM_SRCS:.s=.o)))
-
-ASFLAGS += -mcpu=cortex-m3 -mthumb
 
 CFLAGS += -mcpu=cortex-m3 -mthumb -Wall -Os
 CFLAGS += -std=gnu99
@@ -55,7 +48,6 @@ LDFLAGS += -T$(LINKER_SCRIPT)
 # Tool paths.
 PREFIX	?= arm-none-eabi-
 CC = $(PREFIX)gcc
-AS = $(PREFIX)as
 LD = $(PREFIX)ld
 OBJDUMP = $(PREFIX)objdump
 OBJCOPY = $(PREFIX)objcopy
@@ -184,14 +176,6 @@ $(BUILD_DIR)/$(TARGET).elf: $(OBJS)
 $(BUILD_DIR)/%.o: %.c Makefile | $(BUILD_DIR)
 	$(ECHO) "CC      $<"
 	$(Q)$(CC) $(CFLAGS) -c "$<" -o "$@"
-
-$(BUILD_DIR)/%.o: %.s Makefile | $(BUILD_DIR)
-	$(ECHO) "AS      $<"
-	$(Q)$(AS) $(ASFLAGS) -c "$<" -o "$@"
-
-$(BUILD_DIR)/%.s : %.c
-	$(ECHO) "CC      $<"
-	$(Q)$(CC) -S $(CFLAGS) $< -o $@
 
 output: $(BUILD_DIR)/$(TARGET).hex $(BUILD_DIR)/$(TARGET).bin
 

@@ -38,17 +38,32 @@
 /* SRAM size */
 #define SRAM_SIZE			(20 * 1024)
 
+/* SRAM end (bottom of stack) */
+#define SRAM_END			(SRAM_BASE + SRAM_SIZE)
+
 /* HID Bootloader takes 4 kb flash. */
 #define USER_PROGRAM			(FLASH_BASE + BOOTLOADER_SIZE)
 
+/* Simple function pointer type to call user program */
 typedef void (*funct_ptr)(void);
 
-extern void Reset_Handler(void);
+/* The bootloader entry point gunction prototype */
+void Reset_Handler(void);
 
-void _init(void);
-void __libc_init_array(void);
+/* The SRAM vector table The initializer is to put this array in the
+ * .data section at the begining of SRAM
+ */
+uint32_t RamVectors[37]  __attribute__((section(".data")));
 
-uint32_t RamVectors[37] = {1};
+/* Minimal initial Flash-based vector table */
+uint32_t *VectorTable[] __attribute__((section(".isr_vector"))) = {
+
+	/* Initial stack pointer (MSP) */
+	(uint32_t *) SRAM_END,
+
+	/* Reset handler */
+	(uint32_t *) Reset_Handler
+};
 
 static void delay(uint32_t tmr) {
 	for (uint32_t i = 0; i < tmr; i++) {
@@ -73,8 +88,8 @@ static bool check_flash_complete(void) {
 	return false;
 }
 
-static bool check_user_code(u32 usrAddr) {
-	u32 sp = *(vu32 *) usrAddr;
+static bool check_user_code(uint32_t usrAddr) {
+	uint32_t sp = *(volatile uint32_t *) usrAddr;
 
 	/* Check if the stack pointer in the vector table points in
 	   RAM */
@@ -88,7 +103,7 @@ static bool check_user_code(u32 usrAddr) {
 static uint16_t get_and_clear_magic_word(void) {
 
 	/* Enable the power and backup interface clocks by setting the
-	 * PWREN and BKPEN bitsin the RCC_APB1ENR register
+	 * PWREN and BKPEN bits in the RCC_APB1ENR register
 	 */
 	SET_BIT(RCC->APB1ENR, RCC_APB1ENR_BKPEN | RCC_APB1ENR_PWREN);
 	uint16_t value = BKP->DR10;
@@ -103,23 +118,23 @@ static uint16_t get_and_clear_magic_word(void) {
 	return value;
 }
 
-void _init(void) {
-}
+void Reset_Handler(void) {
 
-void __libc_init_array(void) {
-}
+	/* Setup the system clock (System clock source, PLL Multiplier
+	 * factors, AHB/APBx prescalers and Flash settings)
+	 */
+	SystemInit();
 
-int main(int argc, char *argv[]) {
-	(void) argc;
-	(void) argv;
-
-	RamVectors[0] = SRAM_BASE + SRAM_SIZE;
+	/* Setup to vector table in SRAM, so we can handle USB IRQs */
+	RamVectors[0] = SRAM_END;
 	RamVectors[1] = (uint32_t) Reset_Handler;
 	RamVectors[36] = (uint32_t) USB_LP_CAN1_RX0_IRQHandler;
 	SCB->VTOR = (volatile uint32_t) RamVectors;
 
+	/* Check for a magic word in BACKUP memory */
 	uint16_t magic_word = get_and_clear_magic_word();
 
+	/* Initialize GPIOs */
 	pins_init();
 
 	/* Wait 1uS so the pull-up settles... */
@@ -131,19 +146,25 @@ int main(int argc, char *argv[]) {
 		
 	UploadStarted = false;
 	UploadFinished = false;
-	uint32_t userProgramAddress = *(volatile uint32_t *) (USER_PROGRAM + 0x04);
-	funct_ptr userProgram = (funct_ptr) userProgramAddress;
+	funct_ptr UserProgram = (funct_ptr) *(volatile uint32_t *) (USER_PROGRAM + 0x04);
 
-	/* If PB2 (BOOT 1 pin) is HIGH enter HID bootloader or no User
-	 * Code is uploaded to the MCU or <Battery Backed RAM
-	 * Register> was set from Arduino IDE exit from USB Serial
-	 * mode and go to HID mode ...
+	/* If:
+	 *  - PB2 (BOOT 1 pin) is HIGH or
+	 *  - no User Code is uploaded to the MCU or
+	 *  - a magic word was stored in the battery-backed RAM
+	 *    registers from the Arduino IDE
+	 * then enter HID bootloader...
 	 */
 	if ((magic_word == 0x424C) ||
 		(GPIOB->IDR & GPIO_IDR_IDR2) ||
 		(check_user_code(USER_PROGRAM) == false)) {
 		if (magic_word == 0x424C) {
 		
+			/* If a magic word was stored in the
+			 * battery-backed RAM registers from the
+			 * Arduino IDE, exit from USB Serial mode and
+			 * go to HID mode...
+			 */
 #if defined HAS_LED2_PIN
 			led2_on();
 #endif
@@ -178,7 +199,7 @@ int main(int argc, char *argv[]) {
 	//CLEAR_BIT(RCC->APB2ENR, RCC_APB2ENR_IOPBEN);
 	SCB->VTOR = USER_PROGRAM;
 	__set_MSP((*(volatile uint32_t *) USER_PROGRAM));
-	userProgram();
+	UserProgram();
 	for (;;) {
 		;
 	}
