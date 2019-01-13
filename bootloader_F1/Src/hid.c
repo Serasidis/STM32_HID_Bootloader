@@ -330,7 +330,7 @@ void HIDUSB_Reset(void) {
 
 void HIDUSB_EPHandler(uint16_t Status) {
 	uint8_t EPn = Status & USB_ISTR_EP_ID;
-	uint16_t EP = _GetENDPOINT(EPn);
+	uint16_t EP = *(EP0REG + EPn);
 	USB_SetupPacket *SetupPacket;
 
 	/* OUT and SETUP packets (data reception) */
@@ -373,20 +373,31 @@ void HIDUSB_EPHandler(uint16_t Status) {
 
 				default:
 					USB_SendData(0, 0, 0);
-					_SetEPTxStatus(0, EP_TX_STALL);
+					*(EP0REG + ENDP0) = (((*(EP0REG + ENDP0)) &
+
+						/* Filter out all toggle bits except STAT_TX[1:0] */
+						EPTX_DTOGMASK) ^
+
+						/* Toggle STAT_TX[1:0] to STALL */
+						EP_TX_STALL);
 					break;
 				}
-			} else {
+			} else if (RxTxBuffer[EPn].RXL) {
 
 				/* OUT packet */
-				if (RxTxBuffer[EPn].RXL) {
-					HIDUSB_HandleData((uint8_t *) RxTxBuffer[EPn].RXB);
-				}
+				HIDUSB_HandleData((uint8_t *) RxTxBuffer[EPn].RXB);
 			}
 
 		}
-		_ClearEP_CTR_RX(EPn);
-		_SetEPRxValid(EPn);
+		*(EP0REG + EPn) = (((*(EP0REG + EPn)) &
+
+			/* Filter out all toggle bits except STAT_RX[1:0]
+			 * Clear CTR_RX
+			 */
+			(~EP_CTR_RX & EPRX_DTOGMASK)) ^
+
+			/* Toggle STAT_RX[1:0] to VALID */
+			EP_RX_VALID);
 	}
 	if (EP & EP_CTR_TX) {
 
@@ -394,14 +405,18 @@ void HIDUSB_EPHandler(uint16_t Status) {
 		if (DeviceAddress) {
 
 			/* Set device address and enable function */
-			_SetDADDR(DeviceAddress | DADDR_EF);
+			*DADDR = DADDR_EF | DeviceAddress;
 			DeviceAddress = 0;
 		}
 		USB_Buffer2PMA(EPn);
-		_SetEPTxValid(EPn);
-		_ClearEP_CTR_TX(EPn);
-		if (EPn == ENDP1) {
-			_SetEPTxStatus(ENDP1, EP_TX_NAK);
-		}
+		*(EP0REG + EPn) = (((*(EP0REG + EPn)) &
+
+			/* Filter out all toggle bits except STAT_TX[1:0]
+			 * Clear CTR_TX
+			 */
+			(~EP_CTR_TX & EPTX_DTOGMASK)) ^
+
+			/* Toggle STAT_TX[1:0] to VALID or NAK if EPn 1 */
+			((EPn == ENDP1) ? EP_TX_NAK : EP_TX_VALID));
 	}
 }
