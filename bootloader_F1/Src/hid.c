@@ -48,8 +48,8 @@
 /* Page size */
 #define PAGE_SIZE		1024
 
-/* Buffer table base address */
-#define BTABLE_ADDRESS		(0x00)
+/* Buffer table offsset in PMA memory */
+#define BTABLE_OFFSET		(0x00)
 
 /* EP0  */
 /* RX/TX buffer base address */
@@ -283,8 +283,8 @@ void HIDUSB_Reset(void) {
 	CurrentPage = MIN_PAGE;
 	CurrentPageOffset = 0;
 
-	/* Set buffer descriptor table address in PMA memory */
-	*BTABLE = BTABLE_ADDRESS;
+	/* Set buffer descriptor table offset in PMA memory */
+	*BTABLE = BTABLE_OFFSET;
 
 	/* Initialize Endpoint 0 */
 	(*(EP0REG + ENDP0) = ((*(EP0REG + ENDP0)) &
@@ -299,10 +299,10 @@ void HIDUSB_Reset(void) {
 		EP_RX_VALID));
 
 	/* Set transmission buffer address for endpoint 0 in buffer descriptor table */
-	*((volatile uint32_t *) ((BTABLE_ADDRESS + ENDP0 * 8 + 0) * 2 + PMAAddr)) = ENDP0_TXADDR;
+	BTABLE_ADDR_FROM_OFFSET(ENDP0, BTABLE_OFFSET)[USB_ADDRn_TX] = ENDP0_TXADDR;
 
 	/* Set reception buffer address for endpoint 0 in buffer descriptor table */
-	*((volatile uint32_t *) ((BTABLE_ADDRESS + ENDP0 * 8 + 4) * 2 + PMAAddr)) = ENDP0_RXADDR;
+	BTABLE_ADDR_FROM_OFFSET(ENDP0, BTABLE_OFFSET)[USB_ADDRn_RX] = ENDP0_RXADDR;
 	RxTxBuffer[0].MaxPacketSize = MAX_PACKET_SIZE;
 
 	/* Initialize Endpoint 1 */
@@ -318,10 +318,10 @@ void HIDUSB_Reset(void) {
 		(EP_RX_DIS | EP_TX_NAK)));
 
 	/* Set transmission buffer address for endpoint 1 in buffer descriptor table */
-	*((volatile uint32_t *) ((BTABLE_ADDRESS + ENDP1 * 8 + 0) * 2 + PMAAddr)) = ENDP1_TXADDR;
+	BTABLE_ADDR_FROM_OFFSET(ENDP1, BTABLE_OFFSET)[USB_ADDRn_TX] = ENDP1_TXADDR;
 
 	/* Set transmission byte count for endpoint 1 in buffer descriptor table */
-	*((volatile uint32_t *) ((BTABLE_ADDRESS + ENDP1 * 8 + 2) * 2 + PMAAddr)) = MAX_PACKET_SIZE;
+	BTABLE_ADDR_FROM_OFFSET(ENDP1, BTABLE_OFFSET)[USB_COUNTn_TX] = MAX_PACKET_SIZE;
 	RxTxBuffer[1].MaxPacketSize = MAX_PACKET_SIZE;
 
 	/* Clear device address and enable USB function */

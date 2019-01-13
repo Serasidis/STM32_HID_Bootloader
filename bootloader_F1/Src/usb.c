@@ -39,9 +39,9 @@ static void (*EPHandler)(uint16_t) = NULL;
 static void (*USBResetHandler)(void) = NULL;
 
 void USB_PMA2Buffer(uint8_t EPn) {
-	volatile uint32_t *btable_addr = (volatile uint32_t *) ((((uint16_t) *BTABLE) + EPn * 8) * 2 + PMAAddr);
-	uint32_t Count = RxTxBuffer[EPn].RXL = btable_addr[3] & 0x3ff;
-	uint32_t *Address = (uint32_t *) (PMAAddr + btable_addr[2] * 2);
+	volatile uint32_t *BTableAddress = BTABLE_ADDR(EPn);
+	uint32_t Count = RxTxBuffer[EPn].RXL = BTableAddress[USB_COUNTn_RX] & 0x3ff;
+	uint32_t *Address = (uint32_t *) (PMAAddr + BTableAddress[USB_ADDRn_RX] * 2);
 	uint16_t *Destination = (uint16_t *) RxTxBuffer[EPn].RXB;
 
 	for (uint32_t i = 0; i < Count; i++) {
@@ -50,14 +50,14 @@ void USB_PMA2Buffer(uint8_t EPn) {
 }
 
 void USB_Buffer2PMA(uint8_t EPn) {
-	volatile uint32_t *btable_addr = (volatile uint32_t *) ((((uint16_t) *BTABLE) + EPn * 8) * 2 + PMAAddr);
+	volatile uint32_t *BTableAddress = BTABLE_ADDR(EPn);
 	uint32_t Count = RxTxBuffer[EPn].TXL <= RxTxBuffer[EPn].MaxPacketSize ?
 		RxTxBuffer[EPn].TXL : RxTxBuffer[EPn].MaxPacketSize;
 	uint16_t *Address = RxTxBuffer[EPn].TXB;
-	uint32_t *Destination = (uint32_t *) (PMAAddr + btable_addr[0] * 2);
+	uint32_t *Destination = (uint32_t *) (PMAAddr + BTableAddress[USB_ADDRn_TX] * 2);
 
 	/* Set transmission byte count in buffer descriptor table */
-	btable_addr[1] = Count;
+	BTableAddress[USB_COUNTn_TX] = Count;
 	for (uint32_t i = (Count + 1) / 2; i; i--) {
 		*Destination++ = *Address++;
 	}

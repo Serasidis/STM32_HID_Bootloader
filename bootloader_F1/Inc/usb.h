@@ -714,6 +714,40 @@ enum EP_BUF_NUM
 #define _GetEPDblBuf0Count(bEpNum) (_GetEPTxCount(bEpNum))
 #define _GetEPDblBuf1Count(bEpNum) (_GetEPRxCount(bEpNum))
 
+/*******************************************************************************
+* Macro Name     : BTABLE_ADDR.
+* Description    : Gets btable address in memory from BTABLE register.
+* Input          : bEpNum: endpoint number.
+* Output         : Btable address in memory.
+* Return         : None.
+*******************************************************************************/
+#define BTABLE_ADDR(bEpNum) ((volatile uint32_t *) ((((uint16_t) *BTABLE) \
+    + bEpNum * 8) * 2 + PMAAddr))
+
+/*******************************************************************************
+* Macro Name     : BTABLE_ADDR_FROM_OFFSET.
+* Description    : Gets btable address in memory from offset in PMA memory.
+* Input          : bEpNum: endpoint number.
+* Input          : wOffset: offset in MA memory.
+* Output         : Btable address in memory.
+* Return         : None.
+*******************************************************************************/
+#define BTABLE_ADDR_FROM_OFFSET(bEpNum, wOffset) ((volatile uint32_t *) \
+    ((wOffset + bEpNum * 8) * 2 + PMAAddr))
+
+#define USB_ADDRn_TX	(0) /* Transmission buffer address index in btable */
+#define USB_COUNTn_TX	(1) /* Transmission byte count index in btable */
+#define USB_ADDRn_RX	(2) /* Reception buffer address index in btable */
+#define USB_COUNTn_RX	(3) /* Reception byte count index in btable */
+#define USB_ADDRn_TX_0	(0) /* Transmission buffer address #0 index in btable */
+#define USB_COUNTn_TX_0	(1) /* Transmission byte count #0 index in btable */
+#define USB_ADDRn_TX_1	(2) /* Transmission buffer address #1 index in btable */
+#define USB_COUNTn_TX_1	(3) /* Transmission byte count #1 index in btable */
+#define USB_ADDRn_RX_0	(0) /* Reception buffer address #0 index in btable */
+#define USB_COUNTn_RX_0	(1) /* Reception byte count #0 index in btable */
+#define USB_ADDRn_RX_1	(2) /* Reception buffer address #1 index in btable */
+#define USB_COUNTn_RX_1	(3) /* Reception byte count #1 index in btable */
+
 /* Global Variables */
 extern volatile uint8_t DeviceAddress;
 extern volatile uint16_t DeviceConfigured;
