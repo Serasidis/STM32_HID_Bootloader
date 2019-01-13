@@ -91,6 +91,12 @@ static uint16_t get_and_clear_magic_word(void) {
 	return value;
 }
 
+void _init(void) {
+}
+
+void __libc_init_array(void) {
+}
+
 int main(int argc, char *argv[]) {
 	(void) argc;
 	(void) argv;

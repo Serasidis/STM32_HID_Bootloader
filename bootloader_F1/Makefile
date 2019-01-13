@@ -42,12 +42,14 @@ CFLAGS += -Wredundant-decls -Wstrict-prototypes -Wmissing-prototypes
 CFLAGS += $(INCLUDE_DIRS)
 CFLAGS += -D$(DEVICE)
 CFLAGS += -DVECTOR_TABLE_OFFSET=$(VECTOR_TABLE_OFFSET)
+CFLAGS += -nostdlib
 CFLAGS += $(TARGETFLAGS)
 
 LDFLAGS += -Wl,-Map=$(BUILD_DIR)/$(TARGET).map,--cref
 LDFLAGS += -Wl,--gc-sections
 LDFLAGS += -Wl,--print-memory-usage
 LDFLAGS += -Wl,--no-wchar-size-warning
+LDFLAGS += -nostdlib
 LDFLAGS += -T$(LINKER_SCRIPT)
 
 # Tool paths.
