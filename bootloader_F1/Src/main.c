@@ -77,11 +77,9 @@ static bool check_flash_complete(void) {
 	}
 	if (UploadStarted == false) {
 
-#if defined HAS_LED1_PIN
-		led_on();
+		LED1_ON;
 		delay(200000L);
-		led_off();
-#endif
+		LED1_OFF;
 
 		delay(200000L);
 	}
@@ -178,10 +176,7 @@ void Reset_Handler(void) {
 
 	/* Wait 1uS so the pull-up settles... */
 	delay(72);
-
-#if defined HAS_LED2_PIN
-	led2_off();
-#endif
+	LED2_OFF;
 
 	UploadStarted = false;
 	UploadFinished = false;
@@ -204,10 +199,7 @@ void Reset_Handler(void) {
 			 * Arduino IDE, exit from USB Serial mode and
 			 * go to HID mode...
 			 */
-#if defined HAS_LED2_PIN
-			led2_on();
-#endif
-
+			LED2_ON;
 			USB_Shutdown();
 			delay(4000000L);
 		}
@@ -225,10 +217,7 @@ void Reset_Handler(void) {
 			;
 		}
 	}
-
-#if defined HAS_LED2_PIN
-	led2_on();
-#endif
+	LED2_ON;
 
 	/* Turn GPIOA clock off */
 	CLEAR_BIT(RCC->APB2ENR, RCC_APB2ENR_IOPAEN);

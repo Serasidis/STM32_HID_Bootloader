@@ -20,26 +20,6 @@
 #include "config.h"
 #include "led.h"
 
-#if defined HAS_LED1_PIN
-void led_off(void) {
-	LED1_OFF;
-}
-
-void led_on(void) {
-	LED1_ON;
-}
-#endif
-
-#if defined HAS_LED2_PIN
-void led2_off(void) {
-	LED2_OFF;
-}
-
-void led2_on(void) {
-	LED2_ON;
-}
-#endif
-
 void pins_init(void) {
 
 #if defined HAS_LED1_PIN
@@ -68,7 +48,7 @@ void pins_init(void) {
 
 	/* Turn GPIOB clock on */
 	SET_BIT(RCC->APB2ENR, RCC_APB2ENR_IOPBEN);
-	MODIFY_REG(GPIOB->CRL, (GPIO_CRL_CNF2_0 | GPIO_CRL_MODE2), GPIO_CRL_CNF2_1);
+	SET_BIT(GPIOB->CRL, GPIO_CRL_CNF2_1);
 	CLEAR_BIT(GPIOB->ODR, GPIO_ODR_ODR2);
 
 #else
@@ -77,7 +57,6 @@ void pins_init(void) {
 	 * Turn GPIOB clock on
 	 */
 	SET_BIT(RCC->APB2ENR, RCC_APB2ENR_IOPBEN);
-	CLEAR_BIT(GPIOB->CRL, (GPIO_CRL_MODE2 | GPIO_CRL_MODE2));
 #endif
 
 }

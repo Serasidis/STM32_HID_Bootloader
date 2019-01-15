@@ -266,14 +266,14 @@ static void HIDUSB_HandleData(uint8_t *data) {
 			break;
 		}
 	} else if (CurrentPageOffset >= PAGE_SIZE) {
-		led_on();
+		LED1_ON;
 		PageAddress = (uint16_t * ) (FLASH_BASE_ADDRESS + (CurrentPage * PAGE_SIZE));
 		FLASH_WritePage(PageAddress, (uint16_t *) PageData, PAGE_SIZE / 2);
 		CurrentPage++;
 		CurrentPageOffset = 0;
 		USB_SendData(ENDP1, (uint16_t *) Command,
 			sizeof (Command));
-		led_off();
+		LED1_OFF;
 	}
 }
 
