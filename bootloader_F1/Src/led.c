@@ -20,7 +20,7 @@
 #include "config.h"
 #include "led.h"
 
-#if defined HAS_LED1_PIN	
+#if defined HAS_LED1_PIN
 void led_off(void) {
 	LED1_OFF;
 }
@@ -30,7 +30,7 @@ void led_on(void) {
 }
 #endif
 
-#if defined HAS_LED2_PIN	
+#if defined HAS_LED2_PIN
 void led2_off(void) {
 	LED2_OFF;
 }
@@ -42,14 +42,14 @@ void led2_on(void) {
 
 void pins_init(void) {
 
-#if defined HAS_LED1_PIN	
+#if defined HAS_LED1_PIN
 	LED1_CLOCK_EN;
 	LED1_BIT_0;
 	LED1_BIT_1;
 	LED1_MODE;
 #endif
 
-#if defined HAS_LED2_PIN	
+#if defined HAS_LED2_PIN
 	LED2_CLOCK_EN;
 	LED2_BIT_0;
 	LED2_BIT_1;
