@@ -118,12 +118,51 @@ static uint16_t get_and_clear_magic_word(void) {
 	return value;
 }
 
+static void SetSysClockTo72(void)
+{
+
+	/* Enable HSE */
+	SET_BIT(RCC->CR, RCC_CR_HSEON);
+
+	/* Wait until HSE is ready */
+	//while ((RCC->CR & RCC_CR_HSERDY) == 0) {
+	while (READ_BIT(RCC->CR, RCC_CR_HSERDY) == 0) {
+		;
+	}
+
+	/* Enable Prefetch Buffer & set Flash access to 2 wait states */
+	SET_BIT(FLASH->ACR, FLASH_ACR_PRFTBE | FLASH_ACR_LATENCY_2);
+
+	/* SYSCLK = PCLK2 = HCLK */
+	/* PCLK1 = HCLK / 2 */
+	/* PLLCLK = HSE * 9 = 72 MHz */
+	SET_BIT(RCC->CFGR, RCC_CFGR_HPRE_DIV1 | RCC_CFGR_PPRE2_DIV1 | RCC_CFGR_PPRE1_DIV2 |
+		RCC_CFGR_PLLSRC_HSE | RCC_CFGR_PLLMULL9);
+
+	/* Enable PLL */
+	SET_BIT(RCC->CR, RCC_CR_PLLON);
+
+	/* Wait until PLL is ready */
+	//while ((RCC->CR & RCC_CR_PLLRDY) == 0) {
+	while (READ_BIT(RCC->CR, RCC_CR_PLLRDY) == 0) {
+		;
+	}
+
+	/* Select PLL as system clock source */
+	SET_BIT(RCC->CFGR, RCC_CFGR_SW_PLL);
+
+	/* Wait until PLL is used as system clock source */
+	while (READ_BIT(RCC->CFGR, RCC_CFGR_SWS_1) == 0) {
+		;
+	}
+}
+
 void Reset_Handler(void) {
 
 	/* Setup the system clock (System clock source, PLL Multiplier
 	 * factors, AHB/APBx prescalers and Flash settings)
 	 */
-	SystemInit();
+	SetSysClockTo72();
 
 	/* Setup to vector table in SRAM, so we can handle USB IRQs */
 	RamVectors[0] = SRAM_END;
@@ -143,7 +182,7 @@ void Reset_Handler(void) {
 #if defined HAS_LED2_PIN
 	led2_off();
 #endif
-		
+
 	UploadStarted = false;
 	UploadFinished = false;
 	funct_ptr UserProgram = (funct_ptr) *(volatile uint32_t *) (USER_PROGRAM + 0x04);
@@ -159,7 +198,7 @@ void Reset_Handler(void) {
 		(GPIOB->IDR & GPIO_IDR_IDR2) ||
 		(check_user_code(USER_PROGRAM) == false)) {
 		if (magic_word == 0x424C) {
-		
+
 			/* If a magic word was stored in the
 			 * battery-backed RAM registers from the
 			 * Arduino IDE, exit from USB Serial mode and
@@ -186,7 +225,7 @@ void Reset_Handler(void) {
 			;
 		}
 	}
-	
+
 #if defined HAS_LED2_PIN
 	led2_on();
 #endif
