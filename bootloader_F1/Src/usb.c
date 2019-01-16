@@ -23,8 +23,10 @@
 
 #include <stm32f10x.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 #include "usb.h"
+#include "hid.h"
 
 #define CNTR_MASK	(CNTR_RESETM | CNTR_SUSPM | CNTR_WKUPM)
 #define ISTR_MASK	(ISTR_CTR | ISTR_RESET | ISTR_SUSP | ISTR_WKUP)
@@ -34,9 +36,6 @@ USB_RxTxBuf_t RxTxBuffer[MAX_EP_NUM];
 volatile uint8_t DeviceAddress = 0;
 volatile uint16_t DeviceConfigured = 0;
 const uint16_t DeviceStatus = 0;
-
-static void (*EPHandler)(uint16_t) = NULL;
-static void (*USBResetHandler)(void) = NULL;
 
 void USB_PMA2Buffer(uint8_t EPn) {
 	volatile uint32_t *BTableAddress = BTABLE_ADDR(EPn);
@@ -84,8 +83,6 @@ void USB_Shutdown(void) {
 	NVIC_DisableIRQ(USB_LP_CAN1_RX0_IRQn);
 	_SetISTR(0);
 	DeviceConfigured = 0;
-	EPHandler = NULL;
-	USBResetHandler = NULL;
 
 	/* Turn USB Macrocell off */
 	_SetCNTR(CNTR_FRES|CNTR_PDWN);
@@ -103,7 +100,7 @@ void USB_Shutdown(void) {
 	CLEAR_BIT(RCC->APB1ENR, RCC_APB1ENR_USBEN);
 }
 
-void USB_Init(void (*EPHandlerPtr)(uint16_t), void (*ResetHandlerPtr)(void)) {
+void USB_Init(void) {
 
 	/* Reset RX and TX lengths inside RxTxBuffer struct for all
 	 * endpoints
@@ -111,8 +108,6 @@ void USB_Init(void (*EPHandlerPtr)(uint16_t), void (*ResetHandlerPtr)(void)) {
 	for (int i = 0; i < MAX_EP_NUM; i++) {
 		RxTxBuffer[i].RXL = RxTxBuffer[i].TXL = 0;
 	}
-	EPHandler = EPHandlerPtr;
-	USBResetHandler = ResetHandlerPtr;
 
 	/* PA12: General purpose Input Float */
 	SET_BIT(RCC->APB2ENR, RCC_APB2ENR_IOPAEN);
@@ -149,10 +144,6 @@ void USB_Init(void (*EPHandlerPtr)(uint16_t), void (*ResetHandlerPtr)(void)) {
 	_SetCNTR(CNTR_MASK);
 }
 
-uint16_t USB_IsDeviceConfigured(void) {
-	return DeviceConfigured;
-}
-
 void USB_LP_CAN1_RX0_IRQHandler(void) {
 	volatile uint16_t istr;
 
@@ -163,13 +154,13 @@ void USB_LP_CAN1_RX0_IRQHandler(void) {
 
 			/* Handle data on EP */
 			_SetISTR((uint16_t) CLR_CTR);
-			EPHandler(_GetISTR());
+			USB_EPHandler(_GetISTR());
 		}
 
 		/* Handle Reset */
 		if (READ_BIT(istr, ISTR_RESET)) {
 			_SetISTR((uint16_t) CLR_RESET);
-			USBResetHandler();
+			USB_Reset();
 		}
 
 		/* Handle Suspend */

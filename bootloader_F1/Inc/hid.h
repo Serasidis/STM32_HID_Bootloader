@@ -24,7 +24,7 @@ extern volatile bool UploadStarted;
 extern volatile bool UploadFinished;
 
 /* Function Prototypes */
-void HIDUSB_Reset(void);
-void HIDUSB_EPHandler(uint16_t Status);
+void USB_Reset(void);
+void USB_EPHandler(uint16_t Status);
 
 #endif /* HID_H_ */

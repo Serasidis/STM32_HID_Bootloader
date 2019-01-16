@@ -50,11 +50,6 @@ typedef void (*funct_ptr)(void);
 /* The bootloader entry point gunction prototype */
 void Reset_Handler(void);
 
-/* The SRAM vector table The initializer is to put this array in the
- * .data section at the begining of SRAM
- */
-uint32_t RamVectors[37]  __attribute__((section(".data")));
-
 /* Minimal initial Flash-based vector table */
 uint32_t *VectorTable[] __attribute__((section(".isr_vector"))) = {
 
@@ -156,6 +151,7 @@ static void SetSysClockTo72(void)
 }
 
 void Reset_Handler(void) {
+	volatile uint32_t *const RamVectors = (volatile uint32_t *const ) SRAM_BASE;
 
 	/* Setup the system clock (System clock source, PLL Multiplier
 	 * factors, AHB/APBx prescalers and Flash settings)
@@ -203,7 +199,7 @@ void Reset_Handler(void) {
 			USB_Shutdown();
 			delay(4000000L);
 		}
-		USB_Init(HIDUSB_EPHandler, HIDUSB_Reset);
+		USB_Init();
 		while (check_flash_complete() == false) {
 			delay(400L);
 		};

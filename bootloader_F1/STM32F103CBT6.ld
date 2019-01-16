@@ -86,6 +86,7 @@ SECTIONS
   .data : 
   {
     . = ALIGN(4);
+    . += 0x130;	       /* make room for the isr_vector table in RAM */
     _sdata = .;        /* create a global symbol at data start */
     *(.data)           /* .data sections */
     *(.data*)          /* .data* sections */

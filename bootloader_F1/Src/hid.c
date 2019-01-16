@@ -277,7 +277,7 @@ static void HIDUSB_HandleData(uint8_t *data) {
 	}
 }
 
-void HIDUSB_Reset(void) {
+void USB_Reset(void) {
 
 	/* Initialize Flash Page Settings */
 	CurrentPage = MIN_PAGE;
@@ -316,7 +316,7 @@ void HIDUSB_Reset(void) {
 	*DADDR = DADDR_EF | 0;
 }
 
-void HIDUSB_EPHandler(uint16_t Status) {
+void USB_EPHandler(uint16_t Status) {
 	uint8_t EPn = Status & USB_ISTR_EP_ID;
 	uint16_t EP = *(EP0REG + EPn);
 	USB_SetupPacket *SetupPacket;
