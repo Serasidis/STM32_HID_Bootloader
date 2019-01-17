@@ -44,10 +44,19 @@
 /* HID Bootloader takes 4 kb flash. */
 #define USER_PROGRAM			(FLASH_BASE + BOOTLOADER_SIZE)
 
+/* Initial stack pointer index in vector table*/
+#define INITIAL_MSP			0
+
+/* Reset handler index in vector table*/
+#define RESET_HANDLER			1
+
+/* USB Low-Priority and CAN1 RX0 IRQ handler idnex in vector table */
+#define USB_LP_CAN1_RX0_IRQ_HANDLER	36
+
 /* Simple function pointer type to call user program */
 typedef void (*funct_ptr)(void);
 
-/* The bootloader entry point gunction prototype */
+/* The bootloader entry point function prototype */
 void Reset_Handler(void);
 
 /* Minimal initial Flash-based vector table */
@@ -56,44 +65,42 @@ uint32_t *VectorTable[] __attribute__((section(".isr_vector"))) = {
 	/* Initial stack pointer (MSP) */
 	(uint32_t *) SRAM_END,
 
-	/* Reset handler */
+	/* Initial program counter (PC): Reset handler */
 	(uint32_t *) Reset_Handler
 };
 
-static void delay(uint32_t tmr) {
-	for (uint32_t i = 0; i < tmr; i++) {
+static void delay(uint32_t timeout)
+{
+	for (uint32_t i = 0; i < timeout; i++) {
 		__NOP();
 	}
 }
 
-static bool check_flash_complete(void) {
+static bool check_flash_complete(void)
+{
 	if (UploadFinished == true) {
 		return true;
 	}
 	if (UploadStarted == false) {
-
 		LED1_ON;
 		delay(200000L);
 		LED1_OFF;
-
 		delay(200000L);
 	}
 	return false;
 }
 
-static bool check_user_code(uint32_t usrAddr) {
-	uint32_t sp = *(volatile uint32_t *) usrAddr;
+static bool check_user_code(uint32_t user_address)
+{
+	uint32_t sp = *(volatile uint32_t *) user_address;
 
-	/* Check if the stack pointer in the vector table points in
-	   RAM */
-	if ((sp & 0x2FFE0000) == SRAM_BASE) {
-		return true;
-	} else {
-		return false;
-	}
+	/* Check if the stack pointer in the vector table points
+	   somewhere in SRAM */
+	return ((sp & 0x2FFE0000) == SRAM_BASE) ? true : false;
 }
 
-static uint16_t get_and_clear_magic_word(void) {
+static uint16_t get_and_clear_magic_word(void)
+{
 
 	/* Enable the power and backup interface clocks by setting the
 	 * PWREN and BKPEN bits in the RCC_APB1ENR register
@@ -102,7 +109,9 @@ static uint16_t get_and_clear_magic_word(void) {
 	uint16_t value = BKP->DR10;
 	if (value) {
 
-		/* Enable access to the backup registers and the RTC. */
+		/* Enable write access to the backup registers and the
+		 * RTC.
+		 */
 		SET_BIT(PWR->CR, PWR_CR_DBP);
 		BKP->DR10 = 0x0000;
 		CLEAR_BIT(PWR->CR, PWR_CR_DBP);
@@ -111,14 +120,13 @@ static uint16_t get_and_clear_magic_word(void) {
 	return value;
 }
 
-static void SetSysClockTo72(void)
+static void set_sysclock_to_72_mhz(void)
 {
 
 	/* Enable HSE */
 	SET_BIT(RCC->CR, RCC_CR_HSEON);
 
 	/* Wait until HSE is ready */
-	//while ((RCC->CR & RCC_CR_HSERDY) == 0) {
 	while (READ_BIT(RCC->CR, RCC_CR_HSERDY) == 0) {
 		;
 	}
@@ -129,14 +137,14 @@ static void SetSysClockTo72(void)
 	/* SYSCLK = PCLK2 = HCLK */
 	/* PCLK1 = HCLK / 2 */
 	/* PLLCLK = HSE * 9 = 72 MHz */
-	SET_BIT(RCC->CFGR, RCC_CFGR_HPRE_DIV1 | RCC_CFGR_PPRE2_DIV1 | RCC_CFGR_PPRE1_DIV2 |
+	SET_BIT(RCC->CFGR,
+		RCC_CFGR_HPRE_DIV1 | RCC_CFGR_PPRE2_DIV1 | RCC_CFGR_PPRE1_DIV2 |
 		RCC_CFGR_PLLSRC_HSE | RCC_CFGR_PLLMULL9);
 
 	/* Enable PLL */
 	SET_BIT(RCC->CR, RCC_CR_PLLON);
 
 	/* Wait until PLL is ready */
-	//while ((RCC->CR & RCC_CR_PLLRDY) == 0) {
 	while (READ_BIT(RCC->CR, RCC_CR_PLLRDY) == 0) {
 		;
 	}
@@ -150,19 +158,24 @@ static void SetSysClockTo72(void)
 	}
 }
 
-void Reset_Handler(void) {
-	volatile uint32_t *const RamVectors = (volatile uint32_t *const ) SRAM_BASE;
+void Reset_Handler(void)
+{
+	volatile uint32_t *const ram_vectors =
+		(volatile uint32_t *const) SRAM_BASE;
 
 	/* Setup the system clock (System clock source, PLL Multiplier
 	 * factors, AHB/APBx prescalers and Flash settings)
 	 */
-	SetSysClockTo72();
+	set_sysclock_to_72_mhz();
 
-	/* Setup to vector table in SRAM, so we can handle USB IRQs */
-	RamVectors[0] = SRAM_END;
-	RamVectors[1] = (uint32_t) Reset_Handler;
-	RamVectors[36] = (uint32_t) USB_LP_CAN1_RX0_IRQHandler;
-	SCB->VTOR = (volatile uint32_t) RamVectors;
+	/* Setup a temporary vector table into SRAM, so we can handle
+	 * USB IRQs
+	 */
+	ram_vectors[INITIAL_MSP] = SRAM_END;
+	ram_vectors[RESET_HANDLER] = (uint32_t) Reset_Handler;
+	ram_vectors[USB_LP_CAN1_RX0_IRQ_HANDLER] =
+		(uint32_t) USB_LP_CAN1_RX0_IRQHandler;
+	SCB->VTOR = (volatile uint32_t) ram_vectors;
 
 	/* Check for a magic word in BACKUP memory */
 	uint16_t magic_word = get_and_clear_magic_word();
@@ -170,13 +183,14 @@ void Reset_Handler(void) {
 	/* Initialize GPIOs */
 	pins_init();
 
-	/* Wait 1uS so the pull-up settles... */
+	/* Wait 1us so the pull-up settles... */
 	delay(72);
 	LED2_OFF;
 
 	UploadStarted = false;
 	UploadFinished = false;
-	funct_ptr UserProgram = (funct_ptr) *(volatile uint32_t *) (USER_PROGRAM + 0x04);
+	funct_ptr UserProgram =
+		(funct_ptr) *(volatile uint32_t *) (USER_PROGRAM + 0x04);
 
 	/* If:
 	 *  - PB2 (BOOT 1 pin) is HIGH or
@@ -204,11 +218,13 @@ void Reset_Handler(void) {
 			delay(400L);
 		};
 
- 		/* Reset USB */
+		/* Reset the USB */
 		USB_Shutdown();
 
-		/* Reset STM32 */
+		/* Reset the STM32 */
 		NVIC_SystemReset();
+
+		/* Never reached */
 		for (;;) {
 			;
 		}
@@ -221,9 +237,19 @@ void Reset_Handler(void) {
 	/* Turn GPIOB clock off */
 	LED1_CLOCK_DIS;
 	//CLEAR_BIT(RCC->APB2ENR, RCC_APB2ENR_IOPBEN);
+
+	/* Setup the vector table to the final user-defined one in Flash
+	 * memory
+	 */
 	SCB->VTOR = USER_PROGRAM;
+
+	/* Setup the stack pointer to the user-defined one */
 	__set_MSP((*(volatile uint32_t *) USER_PROGRAM));
+
+	/* Jump to the user firmware entry point */
 	UserProgram();
+
+	/* Never reached */
 	for (;;) {
 		;
 	}

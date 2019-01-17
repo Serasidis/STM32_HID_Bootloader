@@ -20,7 +20,8 @@
 #include "config.h"
 #include "led.h"
 
-void pins_init(void) {
+void pins_init(void)
+{
 
 #if defined HAS_LED1_PIN
 	LED1_CLOCK_EN;

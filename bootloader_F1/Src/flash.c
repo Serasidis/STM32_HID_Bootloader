@@ -22,7 +22,8 @@
 #include <stm32f10x.h>
 #include "flash.h"
 
-void FLASH_WritePage(uint16_t *page, uint16_t *data, uint16_t size) {
+void FLASH_WritePage(uint16_t *page, uint16_t *data, uint16_t size)
+{
 
 	/* Unlock Flash with magic keys */
 	FLASH->KEYR = FLASH_KEY1;

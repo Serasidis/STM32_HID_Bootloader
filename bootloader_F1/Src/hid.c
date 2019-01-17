@@ -72,11 +72,11 @@ static const uint8_t Command[] = {'B', 'T', 'L', 'D', 'C', 'M', 'D', 2};
 /* Flash page buffer */
 static uint8_t PageData[PAGE_SIZE];
 
-/* Current page number (starts right after bootloader's end */
-static volatile uint8_t CurrentPage = 0;
+/* Current page number (starts right after bootloader's end) */
+static volatile uint8_t CurrentPage;
 
 /* Byte offset in flash page */
-static volatile uint16_t CurrentPageOffset = 0;
+static volatile uint16_t CurrentPageOffset;
 
 /* USB Descriptors */
 static const uint8_t USB_DeviceDescriptor[] = {
@@ -173,11 +173,12 @@ static const uint8_t USB_ProductStringDescriptor[] = {
 	'd', 0, 'e', 0, 'r', 0
 };
 
-static void HIDUSB_GetDescriptor(USB_SetupPacket *SPacket) {
+static void HIDUSB_GetDescriptor(USB_SetupPacket *setup_packet)
+{
 	uint16_t *descriptor = 0;
 	uint16_t length = 0;
 
-	switch (SPacket->wValue.H) {
+	switch (setup_packet->wValue.H) {
 	case USB_DEVICE_DESC_TYPE:
 		descriptor =  (uint16_t *) USB_DeviceDescriptor;
 		length = sizeof (USB_DeviceDescriptor);
@@ -194,7 +195,7 @@ static void HIDUSB_GetDescriptor(USB_SetupPacket *SPacket) {
 		break;
 
 	case USB_STR_DESC_TYPE:
-		switch (SPacket->wValue.L) {
+		switch (setup_packet->wValue.L) {
 		case 0x00:
 			descriptor = (uint16_t *) USB_LangIDStringDescriptor;
 			length = sizeof (USB_LangIDStringDescriptor);
@@ -218,13 +219,14 @@ static void HIDUSB_GetDescriptor(USB_SetupPacket *SPacket) {
 	default:
 		break;
 	}
-	if (length > SPacket->wLength) {
-		length = SPacket->wLength;
+	if (length > setup_packet->wLength) {
+		length = setup_packet->wLength;
 	}
 	USB_SendData(0, descriptor, length);
 }
 
-static uint8_t HIDUSB_PacketIsCommand(void) {
+static uint8_t HIDUSB_PacketIsCommand(void)
+{
 	size_t i;
 
 	for (i = 0; i < sizeof (Command) - 1; i++) {
@@ -240,8 +242,9 @@ static uint8_t HIDUSB_PacketIsCommand(void) {
 	return PageData[sizeof (Command) - 1];
 }
 
-static void HIDUSB_HandleData(uint8_t *data) {
-	uint16_t *PageAddress;
+static void HIDUSB_HandleData(uint8_t *data)
+{
+	uint16_t *page_address;
 
 	memcpy(PageData + CurrentPageOffset, data, MAX_PACKET_SIZE);
 	CurrentPageOffset += MAX_PACKET_SIZE;
@@ -267,8 +270,10 @@ static void HIDUSB_HandleData(uint8_t *data) {
 		}
 	} else if (CurrentPageOffset >= PAGE_SIZE) {
 		LED1_ON;
-		PageAddress = (uint16_t * ) (FLASH_BASE_ADDRESS + (CurrentPage * PAGE_SIZE));
-		FLASH_WritePage(PageAddress, (uint16_t *) PageData, PAGE_SIZE / 2);
+		page_address = (uint16_t * ) (FLASH_BASE_ADDRESS +
+			(CurrentPage * PAGE_SIZE));
+		FLASH_WritePage(page_address, (uint16_t *) PageData,
+			PAGE_SIZE / 2);
 		CurrentPage++;
 		CurrentPageOffset = 0;
 		USB_SendData(ENDP1, (uint16_t *) Command,
@@ -277,7 +282,8 @@ static void HIDUSB_HandleData(uint8_t *data) {
 	}
 }
 
-void USB_Reset(void) {
+void USB_Reset(void)
+{
 
 	/* Initialize Flash Page Settings */
 	CurrentPage = MIN_PAGE;
@@ -316,30 +322,31 @@ void USB_Reset(void) {
 	*DADDR = DADDR_EF | 0;
 }
 
-void USB_EPHandler(uint16_t Status) {
-	uint8_t EPn = Status & USB_ISTR_EP_ID;
-	uint16_t EP = *(EP0REG + EPn);
-	USB_SetupPacket *SetupPacket;
+void USB_EPHandler(uint16_t status)
+{
+	uint8_t endpoint = status & USB_ISTR_EP_ID;
+	uint16_t endpoint_status = *(EP0REG + endpoint);
+	USB_SetupPacket *setup_packet;
 
 	/* OUT and SETUP packets (data reception) */
-	if (EP & EP_CTR_RX) {
+	if (endpoint_status & EP_CTR_RX) {
 
 		/* Copy from packet area to user buffer */
-		USB_PMA2Buffer(EPn);
-		if (EPn == 0) {
+		USB_PMA2Buffer(endpoint);
+		if (endpoint == 0) {
 
 			/* If control endpoint */
-			if (EP & USB_EP0R_SETUP) {
-				SetupPacket = (USB_SetupPacket *) RxTxBuffer[EPn].RXB;
-				switch (SetupPacket->bRequest) {
+			if (endpoint_status & USB_EP0R_SETUP) {
+				setup_packet = (USB_SetupPacket *) RxTxBuffer[endpoint].RXB;
+				switch (setup_packet->bRequest) {
 
 				case USB_REQUEST_SET_ADDRESS:
-					DeviceAddress = SetupPacket->wValue.L;
+					DeviceAddress = setup_packet->wValue.L;
 					USB_SendData(0, 0, 0);
 					break;
 
 				case USB_REQUEST_GET_DESCRIPTOR:
-					HIDUSB_GetDescriptor(SetupPacket);
+					HIDUSB_GetDescriptor(setup_packet);
 					break;
 
 				case USB_REQUEST_GET_STATUS:
@@ -367,19 +374,19 @@ void USB_EPHandler(uint16_t Status) {
 						EP_TX_STALL);
 					break;
 				}
-			} else if (RxTxBuffer[EPn].RXL) {
+			} else if (RxTxBuffer[endpoint].RXL) {
 
 				/* OUT packet */
-				HIDUSB_HandleData((uint8_t *) RxTxBuffer[EPn].RXB);
+				HIDUSB_HandleData((uint8_t *) RxTxBuffer[endpoint].RXB);
 			}
 
 		}
-		TOGGLE_REG(EP0REG[EPn],
+		TOGGLE_REG(EP0REG[endpoint],
 			EP_CTR_RX | EP_DTOG_RX | EPTX_STAT | EP_DTOG_TX,
 			0,
 			EP_RX_VALID);
 	}
-	if (EP & EP_CTR_TX) {
+	if (endpoint_status & EP_CTR_TX) {
 
 		/* Something transmitted */
 		if (DeviceAddress) {
@@ -388,10 +395,10 @@ void USB_EPHandler(uint16_t Status) {
 			*DADDR = DADDR_EF | DeviceAddress;
 			DeviceAddress = 0;
 		}
-		USB_Buffer2PMA(EPn);
-		TOGGLE_REG(EP0REG[EPn],
+		USB_Buffer2PMA(endpoint);
+		TOGGLE_REG(EP0REG[endpoint],
 			EP_DTOG_RX | EPRX_STAT | EP_CTR_TX | EP_DTOG_TX,
 			0,
-			(EPn == ENDP1) ? EP_TX_NAK : EP_TX_VALID);
+			(endpoint == ENDP1) ? EP_TX_NAK : EP_TX_VALID);
 	}
 }

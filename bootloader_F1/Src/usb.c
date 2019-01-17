@@ -33,51 +33,55 @@
 
 USB_RxTxBuf_t RxTxBuffer[MAX_EP_NUM];
 
-volatile uint8_t DeviceAddress = 0;
-volatile uint16_t DeviceConfigured = 0;
-const uint16_t DeviceStatus = 0;
+volatile uint8_t DeviceAddress;
+volatile uint16_t DeviceConfigured;
+const uint16_t DeviceStatus;
 
-void USB_PMA2Buffer(uint8_t EPn) {
-	volatile uint32_t *BTableAddress = BTABLE_ADDR(EPn);
-	uint32_t Count = RxTxBuffer[EPn].RXL = BTableAddress[USB_COUNTn_RX] & 0x3ff;
-	uint32_t *Address = (uint32_t *) (PMAAddr + BTableAddress[USB_ADDRn_RX] * 2);
-	uint16_t *Destination = (uint16_t *) RxTxBuffer[EPn].RXB;
+void USB_PMA2Buffer(uint8_t endpoint)
+{
+	volatile uint32_t *btable = BTABLE_ADDR(endpoint);
+	uint32_t count = RxTxBuffer[endpoint].RXL = btable[USB_COUNTn_RX] & 0x3ff;
+	uint32_t *address = (uint32_t *) (PMAAddr + btable[USB_ADDRn_RX] * 2);
+	uint16_t *destination = (uint16_t *) RxTxBuffer[endpoint].RXB;
 
-	for (uint32_t i = 0; i < Count; i++) {
-		*Destination++ = *Address++;
+	for (uint32_t i = 0; i < count; i++) {
+		*destination++ = *address++;
 	}
 }
 
-void USB_Buffer2PMA(uint8_t EPn) {
-	volatile uint32_t *BTableAddress = BTABLE_ADDR(EPn);
-	uint32_t Count = RxTxBuffer[EPn].TXL <= RxTxBuffer[EPn].MaxPacketSize ?
-		RxTxBuffer[EPn].TXL : RxTxBuffer[EPn].MaxPacketSize;
-	uint16_t *Address = RxTxBuffer[EPn].TXB;
-	uint32_t *Destination = (uint32_t *) (PMAAddr + BTableAddress[USB_ADDRn_TX] * 2);
+void USB_Buffer2PMA(uint8_t endpoint)
+{
+	volatile uint32_t *btable = BTABLE_ADDR(endpoint);
+	uint32_t count = RxTxBuffer[endpoint].TXL <= RxTxBuffer[endpoint].MaxPacketSize ?
+		RxTxBuffer[endpoint].TXL : RxTxBuffer[endpoint].MaxPacketSize;
+	uint16_t *address = RxTxBuffer[endpoint].TXB;
+	uint32_t *destination = (uint32_t *) (PMAAddr + btable[USB_ADDRn_TX] * 2);
 
 	/* Set transmission byte count in buffer descriptor table */
-	BTableAddress[USB_COUNTn_TX] = Count;
-	for (uint32_t i = (Count + 1) / 2; i; i--) {
-		*Destination++ = *Address++;
+	btable[USB_COUNTn_TX] = count;
+	for (uint32_t i = (count + 1) / 2; i; i--) {
+		*destination++ = *address++;
 	}
-	RxTxBuffer[EPn].TXL -= Count;
-	RxTxBuffer[EPn].TXB = Address;
+	RxTxBuffer[endpoint].TXL -= count;
+	RxTxBuffer[endpoint].TXB = address;
 }
 
-void USB_SendData(uint8_t EPn, uint16_t *Data, uint16_t Length) {
-	if (EPn > 0 && !DeviceConfigured) {
+void USB_SendData(uint8_t endpoint, uint16_t *data, uint16_t length)
+{
+	if (endpoint > 0 && !DeviceConfigured) {
 		return;
 	}
-	RxTxBuffer[EPn].TXL = Length;
-	RxTxBuffer[EPn].TXB = Data;
-	USB_Buffer2PMA(EPn);
-	TOGGLE_REG(EP0REG[EPn],
+	RxTxBuffer[endpoint].TXL = length;
+	RxTxBuffer[endpoint].TXB = data;
+	USB_Buffer2PMA(endpoint);
+	TOGGLE_REG(EP0REG[endpoint],
 		   EP_DTOG_RX | EPRX_STAT | EP_DTOG_TX,
 		   0,
 		   EP_TX_VALID);
 }
 
-void USB_Shutdown(void) {
+void USB_Shutdown(void)
+{
 
 	/* Disable USB IRQ */
 	NVIC_DisableIRQ(USB_LP_CAN1_RX0_IRQn);
@@ -100,7 +104,8 @@ void USB_Shutdown(void) {
 	CLEAR_BIT(RCC->APB1ENR, RCC_APB1ENR_USBEN);
 }
 
-void USB_Init(void) {
+void USB_Init(void)
+{
 
 	/* Reset RX and TX lengths inside RxTxBuffer struct for all
 	 * endpoints
@@ -117,7 +122,7 @@ void USB_Init(void) {
 	DeviceConfigured = 0;
 	SET_BIT(RCC->APB1ENR, RCC_APB1ENR_USBEN);
 
-	/* Enable USB IRQ in core */
+	/* Enable USB IRQ in Cortex M3 core */
 	NVIC_EnableIRQ(USB_LP_CAN1_RX0_IRQn);
 
 	/* CNTR_FRES = 1, CNTR_PWDN = 0 */
@@ -144,7 +149,8 @@ void USB_Init(void) {
 	_SetCNTR(CNTR_MASK);
 }
 
-void USB_LP_CAN1_RX0_IRQHandler(void) {
+void USB_LP_CAN1_RX0_IRQHandler(void)
+{
 	volatile uint16_t istr;
 
 	while ((istr = _GetISTR() & ISTR_MASK) != 0) {
