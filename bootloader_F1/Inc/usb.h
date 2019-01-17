@@ -748,7 +748,23 @@ enum EP_BUF_NUM
 #define USB_ADDRn_RX_1	(2) /* Reception buffer address #1 index in btable */
 #define USB_COUNTn_RX_1	(3) /* Reception byte count #1 index in btable */
 
-#define TOGGLE_REG(REG, CLEARMASK, SETMASK, TOGGLEMASK)  WRITE_REG((REG), ((((READ_REG(REG)) & (~(CLEARMASK))) | (SETMASK)) ^ (TOGGLEMASK)))
+#define TOGGLE_REG(REG, CLEARMASK, SETMASK, TOGGLEMASK) \
+	WRITE_REG((REG), \
+		((((READ_REG(REG)) & (~(CLEARMASK))) | \
+				(SETMASK)) ^ \
+			(TOGGLEMASK)))
+
+#define SET_RX_STATUS(bEpNum, wStatus) \
+	TOGGLE_REG(EP0REG[bEpNum], \
+		   EP_CTR_RX | EP_DTOG_RX | EPTX_STAT | EP_DTOG_TX, \
+		   0, \
+		   wStatus)
+
+#define SET_TX_STATUS(bEpNum, wStatus) \
+	TOGGLE_REG(EP0REG[bEpNum], \
+		   EP_DTOG_RX | EPRX_STAT | EP_CTR_TX | EP_DTOG_TX, \
+		   0, \
+		   wStatus)
 
 /* Global Variables */
 extern volatile uint8_t DeviceAddress;

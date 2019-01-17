@@ -74,10 +74,7 @@ void USB_SendData(uint8_t endpoint, uint16_t *data, uint16_t length)
 	RxTxBuffer[endpoint].TXL = length;
 	RxTxBuffer[endpoint].TXB = data;
 	USB_Buffer2PMA(endpoint);
-	TOGGLE_REG(EP0REG[endpoint],
-		   EP_DTOG_RX | EPRX_STAT | EP_DTOG_TX,
-		   0,
-		   EP_TX_VALID);
+	SET_TX_STATUS(endpoint, EP_TX_VALID);
 }
 
 void USB_Shutdown(void)

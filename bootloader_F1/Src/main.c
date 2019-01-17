@@ -200,7 +200,7 @@ void Reset_Handler(void)
 	 * then enter HID bootloader...
 	 */
 	if ((magic_word == 0x424C) ||
-		(GPIOB->IDR & GPIO_IDR_IDR2) ||
+		READ_BIT(GPIOB->IDR, GPIO_IDR_IDR2) ||
 		(check_user_code(USER_PROGRAM) == false)) {
 		if (magic_word == 0x424C) {
 

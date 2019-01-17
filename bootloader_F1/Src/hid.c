@@ -324,19 +324,19 @@ void USB_Reset(void)
 
 void USB_EPHandler(uint16_t status)
 {
-	uint8_t endpoint = status & USB_ISTR_EP_ID;
-	uint16_t endpoint_status = *(EP0REG + endpoint);
+	uint8_t endpoint = READ_BIT(status, USB_ISTR_EP_ID);
+	uint16_t endpoint_status = EP0REG[endpoint];
 	USB_SetupPacket *setup_packet;
 
 	/* OUT and SETUP packets (data reception) */
-	if (endpoint_status & EP_CTR_RX) {
+	if (READ_BIT(endpoint_status, EP_CTR_RX)) {
 
 		/* Copy from packet area to user buffer */
 		USB_PMA2Buffer(endpoint);
 		if (endpoint == 0) {
 
 			/* If control endpoint */
-			if (endpoint_status & USB_EP0R_SETUP) {
+			if (READ_BIT(endpoint_status, USB_EP0R_SETUP)) {
 				setup_packet = (USB_SetupPacket *) RxTxBuffer[endpoint].RXB;
 				switch (setup_packet->bRequest) {
 
@@ -368,10 +368,7 @@ void USB_EPHandler(uint16_t status)
 
 				default:
 					USB_SendData(0, 0, 0);
-					TOGGLE_REG(EP0REG[ENDP0],
-						EP_DTOG_RX | EPRX_STAT | EP_DTOG_TX,
-						0,
-						EP_TX_STALL);
+					SET_TX_STATUS(ENDP0, EP_TX_STALL);
 					break;
 				}
 			} else if (RxTxBuffer[endpoint].RXL) {
@@ -381,12 +378,9 @@ void USB_EPHandler(uint16_t status)
 			}
 
 		}
-		TOGGLE_REG(EP0REG[endpoint],
-			EP_CTR_RX | EP_DTOG_RX | EPTX_STAT | EP_DTOG_TX,
-			0,
-			EP_RX_VALID);
+		SET_RX_STATUS(endpoint, EP_RX_VALID);
 	}
-	if (endpoint_status & EP_CTR_TX) {
+	if (READ_BIT(endpoint_status, EP_CTR_TX)) {
 
 		/* Something transmitted */
 		if (DeviceAddress) {
@@ -396,9 +390,6 @@ void USB_EPHandler(uint16_t status)
 			DeviceAddress = 0;
 		}
 		USB_Buffer2PMA(endpoint);
-		TOGGLE_REG(EP0REG[endpoint],
-			EP_DTOG_RX | EPRX_STAT | EP_CTR_TX | EP_DTOG_TX,
-			0,
-			(endpoint == ENDP1) ? EP_TX_NAK : EP_TX_VALID);
+		SET_TX_STATUS(endpoint, (endpoint == ENDP1) ? EP_TX_NAK : EP_TX_VALID);
 	}
 }
