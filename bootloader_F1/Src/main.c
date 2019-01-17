@@ -106,14 +106,14 @@ static uint16_t get_and_clear_magic_word(void)
 	 * PWREN and BKPEN bits in the RCC_APB1ENR register
 	 */
 	SET_BIT(RCC->APB1ENR, RCC_APB1ENR_BKPEN | RCC_APB1ENR_PWREN);
-	uint16_t value = BKP->DR10;
+	uint16_t value = READ_REG(BKP->DR10);
 	if (value) {
 
 		/* Enable write access to the backup registers and the
 		 * RTC.
 		 */
 		SET_BIT(PWR->CR, PWR_CR_DBP);
-		BKP->DR10 = 0x0000;
+		WRITE_REG(BKP->DR10, 0x0000);
 		CLEAR_BIT(PWR->CR, PWR_CR_DBP);
 	}
 	CLEAR_BIT(RCC->APB1ENR, RCC_APB1ENR_BKPEN | RCC_APB1ENR_PWREN);
@@ -175,7 +175,7 @@ void Reset_Handler(void)
 	ram_vectors[RESET_HANDLER] = (uint32_t) Reset_Handler;
 	ram_vectors[USB_LP_CAN1_RX0_IRQ_HANDLER] =
 		(uint32_t) USB_LP_CAN1_RX0_IRQHandler;
-	SCB->VTOR = (volatile uint32_t) ram_vectors;
+	WRITE_REG(SCB->VTOR, (volatile uint32_t) ram_vectors);
 
 	/* Check for a magic word in BACKUP memory */
 	uint16_t magic_word = get_and_clear_magic_word();
@@ -241,7 +241,7 @@ void Reset_Handler(void)
 	/* Setup the vector table to the final user-defined one in Flash
 	 * memory
 	 */
-	SCB->VTOR = USER_PROGRAM;
+	WRITE_REG(SCB->VTOR, USER_PROGRAM);
 
 	/* Setup the stack pointer to the user-defined one */
 	__set_MSP((*(volatile uint32_t *) USER_PROGRAM));

@@ -290,7 +290,7 @@ void USB_Reset(void)
 	CurrentPageOffset = 0;
 
 	/* Set buffer descriptor table offset in PMA memory */
-	*BTABLE = BTABLE_OFFSET;
+	WRITE_REG(*BTABLE, BTABLE_OFFSET);
 
 	/* Initialize Endpoint 0 */
 	TOGGLE_REG(EP0REG[ENDP0],
@@ -319,7 +319,7 @@ void USB_Reset(void)
 	RxTxBuffer[1].MaxPacketSize = MAX_PACKET_SIZE;
 
 	/* Clear device address and enable USB function */
-	*DADDR = DADDR_EF | 0;
+	WRITE_REG(*DADDR, DADDR_EF | 0);
 }
 
 void USB_EPHandler(uint16_t status)
@@ -386,7 +386,7 @@ void USB_EPHandler(uint16_t status)
 		if (DeviceAddress) {
 
 			/* Set device address and enable function */
-			*DADDR = DADDR_EF | DeviceAddress;
+			WRITE_REG(*DADDR, DADDR_EF | DeviceAddress);
 			DeviceAddress = 0;
 		}
 		USB_Buffer2PMA(endpoint);

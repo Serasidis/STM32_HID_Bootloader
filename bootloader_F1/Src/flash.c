@@ -26,15 +26,15 @@ void FLASH_WritePage(uint16_t *page, uint16_t *data, uint16_t size)
 {
 
 	/* Unlock Flash with magic keys */
-	FLASH->KEYR = FLASH_KEY1;
-	FLASH->KEYR = FLASH_KEY2;
+	WRITE_REG(FLASH->KEYR, FLASH_KEY1);
+	WRITE_REG(FLASH->KEYR, FLASH_KEY2);
 	while (READ_BIT(FLASH->SR, FLASH_SR_BSY)) {
 		;
 	}
 
 	/* Format page */
 	SET_BIT(FLASH->CR, FLASH_CR_PER);
-	FLASH->AR = (uint32_t) page;
+	WRITE_REG(FLASH->AR, (uint32_t) page);
 	SET_BIT(FLASH->CR, FLASH_CR_STRT);
 	while (READ_BIT(FLASH->SR, FLASH_SR_BSY)) {
 		;

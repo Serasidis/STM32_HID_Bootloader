@@ -45,19 +45,17 @@ void pins_init(void)
 	DISC_LOW;
 #endif
 
-#if defined PB2_PULLDOWN
-
 	/* Turn GPIOB clock on */
 	SET_BIT(RCC->APB2ENR, RCC_APB2ENR_IOPBEN);
+
+#if defined PB2_PULLDOWN
+
 	SET_BIT(GPIOB->CRL, GPIO_CRL_CNF2_1);
 	CLEAR_BIT(GPIOB->ODR, GPIO_ODR_ODR2);
 
 #else
 
-	/* PB2 is in FLOATING mode.
-	 * Turn GPIOB clock on
-	 */
-	SET_BIT(RCC->APB2ENR, RCC_APB2ENR_IOPBEN);
+	/* PB2 is in FLOATING mode. */
 #endif
 
 }

@@ -82,11 +82,11 @@ void USB_Shutdown(void)
 
 	/* Disable USB IRQ */
 	NVIC_DisableIRQ(USB_LP_CAN1_RX0_IRQn);
-	_SetISTR(0);
+	WRITE_REG(*ISTR, 0);
 	DeviceConfigured = 0;
 
 	/* Turn USB Macrocell off */
-	_SetCNTR(CNTR_FRES|CNTR_PDWN);
+	WRITE_REG(*CNTR, CNTR_FRES | CNTR_PDWN);
 
 	/* PA12: General purpose output 50 MHz open drain */
 	SET_BIT(RCC->APB2ENR, RCC_APB2ENR_IOPAEN);
@@ -95,7 +95,7 @@ void USB_Shutdown(void)
 		GPIO_CRH_CNF12_0 | GPIO_CRH_MODE12);
 
 	/* Sinks PA12 to GND */
-	GPIOA->BRR = GPIO_BRR_BR12;
+	WRITE_REG(GPIOA->BRR, GPIO_BRR_BR12);
 
 	/* Disable USB Clock on APB1 */
 	CLEAR_BIT(RCC->APB1ENR, RCC_APB1ENR_USBEN);
@@ -116,14 +116,18 @@ void USB_Init(void)
 	MODIFY_REG(GPIOA->CRH,
 		GPIO_CRH_CNF12 | GPIO_CRH_MODE12,
 		GPIO_CRH_CNF12_0);
+
+	/* USB devices start as not configured */
 	DeviceConfigured = 0;
+
+	/* Enable USB clock */
 	SET_BIT(RCC->APB1ENR, RCC_APB1ENR_USBEN);
 
 	/* Enable USB IRQ in Cortex M3 core */
 	NVIC_EnableIRQ(USB_LP_CAN1_RX0_IRQn);
 
 	/* CNTR_FRES = 1, CNTR_PWDN = 0 */
-	_SetCNTR(CNTR_FRES);
+	WRITE_REG(*CNTR, CNTR_FRES);
 
 	/* The following sequence is recommended:
 	 * 1- FRES = 0
@@ -132,57 +136,57 @@ void USB_Init(void)
 	 */
 
 	/* CNTR_FRES = 0 */
-	_SetCNTR(0);
+	WRITE_REG(*CNTR, 0);
 
 	/* Wait until RESET flag = 1 (polling) */
-	while (!READ_BIT(_GetISTR(), ISTR_RESET)) {
+	while (!READ_BIT(*ISTR, ISTR_RESET)) {
 		;
 	}
 
 	/* Clear pending interrupts */
-	_SetISTR(0);
+	WRITE_REG(*ISTR, 0);
 
 	/* Set interrupt mask */
-	_SetCNTR(CNTR_MASK);
+	WRITE_REG(*CNTR, CNTR_MASK);
 }
 
 void USB_LP_CAN1_RX0_IRQHandler(void)
 {
 	volatile uint16_t istr;
 
-	while ((istr = _GetISTR() & ISTR_MASK) != 0) {
+	while ((istr = READ_REG(*ISTR) & ISTR_MASK) != 0) {
 
 		/* Handle EP data */
 		if (READ_BIT(istr, ISTR_CTR)) {
 
 			/* Handle data on EP */
-			_SetISTR((uint16_t) CLR_CTR);
-			USB_EPHandler(_GetISTR());
+			WRITE_REG(*ISTR, CLR_CTR);
+			USB_EPHandler(READ_REG(*ISTR));
 		}
 
 		/* Handle Reset */
 		if (READ_BIT(istr, ISTR_RESET)) {
-			_SetISTR((uint16_t) CLR_RESET);
+			WRITE_REG(*ISTR, CLR_RESET);
 			USB_Reset();
 		}
 
 		/* Handle Suspend */
 		if (READ_BIT(istr, ISTR_SUSP)) {
-			_SetISTR((uint16_t) CLR_SUSP);
+			WRITE_REG(*ISTR, CLR_SUSP);
 
 			/* If device address is assigned, then reset it */
-			if (_GetDADDR() & 0x007f) {
-				_SetDADDR(0);
-				_SetCNTR(_GetCNTR() & ~CNTR_SUSPM);
+			if (READ_REG(*DADDR) & USB_DADDR_ADD) {
+				WRITE_REG(*DADDR, 0);
+				CLEAR_BIT(*CNTR, CNTR_SUSPM);
 			}
 		}
 
 		/* Handle Wakeup */
 		if (READ_BIT(istr, ISTR_WKUP)) {
-			_SetISTR((uint16_t) CLR_WKUP);
+			WRITE_REG(*ISTR, CLR_WKUP);
 		}
 	}
 
 	/* Default to clear all interrupt flags */
-	_SetISTR(0);
+	WRITE_REG(*ISTR, 0);
 }
