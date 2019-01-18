@@ -22,31 +22,21 @@
 
 void pins_init(void)
 {
+	SET_BIT(RCC->APB2ENR,
+		LED1_CLOCK | LED2_CLOCK | DISC_CLOCK | RCC_APB2ENR_IOPBEN);
 
-#if defined HAS_LED1_PIN
-	LED1_CLOCK_EN;
 	LED1_BIT_0;
 	LED1_BIT_1;
 	LED1_MODE;
-#endif
 
-#if defined HAS_LED2_PIN
-	LED2_CLOCK_EN;
 	LED2_BIT_0;
 	LED2_BIT_1;
 	LED2_MODE;
-#endif
 
-#if defined HAS_DISC_PIN
-	DISC_CLOCK_EN;
 	DISC_BIT_0;
 	DISC_BIT_1;
 	DISC_MODE;
 	DISC_LOW;
-#endif
-
-	/* Turn GPIOB clock on */
-	SET_BIT(RCC->APB2ENR, RCC_APB2ENR_IOPBEN);
 
 #if defined PB2_PULLDOWN
 
@@ -55,7 +45,7 @@ void pins_init(void)
 
 #else
 
-	/* PB2 is in FLOATING mode. */
+	/* PB2 is already in FLOATING mode by default. */
 #endif
 
 }

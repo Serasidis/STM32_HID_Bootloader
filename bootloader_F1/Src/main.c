@@ -231,12 +231,9 @@ void Reset_Handler(void)
 	}
 	LED2_ON;
 
-	/* Turn GPIOA clock off */
-	CLEAR_BIT(RCC->APB2ENR, RCC_APB2ENR_IOPAEN);
-
-	/* Turn GPIOB clock off */
-	LED1_CLOCK_DIS;
-	//CLEAR_BIT(RCC->APB2ENR, RCC_APB2ENR_IOPBEN);
+	/* Turn GPIO clocks off */
+	CLEAR_BIT(RCC->APB2ENR,
+		LED1_CLOCK | LED2_CLOCK | DISC_CLOCK/* | RCC_APB2ENR_IOPBEN*/);
 
 	/* Setup the vector table to the final user-defined one in Flash
 	 * memory
