@@ -201,12 +201,12 @@ $(BUILD_DIR):
 
 clean:
 	$(ECHO) "CLEAN"
-	$(RM) -f $(BUILD_DIR)/$(TARGET).elf
-	$(RM) -f $(BUILD_DIR)/$(TARGET).bin
-	$(RM) -f $(BUILD_DIR)/$(TARGET).hex
-	$(RM) -f $(BUILD_DIR)/$(TARGET).size
-	$(RM) -f $(BUILD_DIR)/$(TARGET).lst
-	$(RM) -f $(BUILD_DIR)/$(TARGET).dis
-	$(RM) -f $(BUILD_DIR)/$(TARGET).map
-	$(RM) -f $(OBJS)
-	-$(RMDIR) $(BUILD_DIR)
+	$(Q)$(RM) -f $(BUILD_DIR)/$(TARGET).elf
+	$(Q)$(RM) -f $(BUILD_DIR)/$(TARGET).bin
+	$(Q)$(RM) -f $(BUILD_DIR)/$(TARGET).hex
+	$(Q)$(RM) -f $(BUILD_DIR)/$(TARGET).size
+	$(Q)$(RM) -f $(BUILD_DIR)/$(TARGET).lst
+	$(Q)$(RM) -f $(BUILD_DIR)/$(TARGET).dis
+	$(Q)$(RM) -f $(BUILD_DIR)/$(TARGET).map
+	$(Q)$(RM) -f $(OBJS)
+	-$(Q)$(RMDIR) $(BUILD_DIR)
