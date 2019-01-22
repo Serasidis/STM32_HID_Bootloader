@@ -29,10 +29,13 @@
 #include "rs232.h"
 #include "hidapi.h"
 
-#define SECTOR_SIZE 1024
+#define SECTOR_SIZE  1024
 #define HID_TX_SIZE    65
 #define HID_RX_SIZE     9
 
+#define VID           0x1209
+#define PID           0xBEBA
+#define FIRMWARE_VER  0x0300
 
 int serial_init(char *argument, uint8_t __timer);
 
@@ -72,12 +75,12 @@ int main(int argc, char *argv[]) {
 	setbuf(stdout, NULL);
   uint8_t _timer = 0;
 	
-	printf("\n+----------------------------------------------------------------------+\n");
-	printf  ("|         HID-Flash v2.0 - STM32 HID Bootloader Flash Tool            |\n");
-	printf  ("|     (c) 04/2018 - Bruno Freitas - http://www.brunofreitas.com/       |\n");
-	printf  ("|     (c) 04/2018 - Vassilis Serasidis - http://www.serasidis.gr/      |\n");
-	printf  ("|   Customized for STM32duino ecosystem - http://www.stm32duino.com/   |\n");
-	printf  ("+----------------------------------------------------------------------+\n\n");
+	printf("\n+-----------------------------------------------------------------------+\n");
+	printf  ("|         HID-Flash v2.1 - STM32 HID Bootloader Flash Tool              |\n");
+	printf  ("|     (c)      2018 - Bruno Freitas       http://www.brunofreitas.com   |\n");
+	printf  ("|     (c) 2018-2019 - Vassilis Serasidis  https://www.serasidis.gr      |\n");
+	printf  ("|   Customized for STM32duino ecosystem   https://www.stm32duino.com    |\n");
+	printf  ("+-----------------------------------------------------------------------+\n\n");
 	
 	if(argc < 3) {
 		printf("Usage: hid-flash <bin_firmware_file> <comport> <delay (optional)>\n");
@@ -91,14 +94,33 @@ int main(int argc, char *argv[]) {
   
   printf("> Searching for 1209:BEBA HID device...\n");
   
-   for(i=0;i<10;i++){ //Trying 10 times to open the HID device.
-    printf("#");
-    handle = hid_open(0x1209, 0xBEBA, NULL);
-    if (handle){
-      break;
+  struct hid_device_info *devs, *cur_dev;
+  uint8_t valid_hid_devices = 0;
+  
+  for(i=0;i<10;i++){ //Try up to 10 times to open the HID device.
+    devs = hid_enumerate(VID, PID);
+    cur_dev = devs;
+    while (cur_dev) { //Search for valid HID Bootloader USB devices
+      if((cur_dev->vendor_id == VID)&&(cur_dev->product_id = PID)){
+        valid_hid_devices++;
+        if(cur_dev->release_number < FIRMWARE_VER){ //The STM32 board has firmware lower than 3.00
+          printf("\nError - Please update the firmware to the latest version (v3.00+)");
+          goto exit;
+        }
+      }
+      cur_dev = cur_dev->next;
     }
+    hid_free_enumeration(devs);
+    printf("#");
     sleep(1);
+    if(valid_hid_devices > 0) break;
   }
+  if (valid_hid_devices == 0){
+    printf("\nError - No HID Bootloader device is found");
+    goto exit;
+  } 
+  
+  handle = hid_open(VID, PID, NULL);
   
   if(i == 10){
     printf("\n> Unable to open the HID device.\n");

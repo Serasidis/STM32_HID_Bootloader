@@ -89,7 +89,7 @@ static const uint8_t USB_DeviceDescriptor[] = {
 	MAX_PACKET_SIZE,	// bMaxPacketSize0 8
 	0x09, 0x12,		// idVendor 0x1209
 	0xBA, 0xBE,		// idProduct 0xBEBA
-	0x02, 0x00,		// bcdDevice 0.02
+	0x00, 0x03,		// bcdDevice 3.00
 	0x01,			// iManufacturer (String Index)
 	0x02,			// iProduct (String Index)
 	0x00,			// iSerialNumber (String Index)
