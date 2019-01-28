@@ -164,7 +164,7 @@ copy_generic-pb12: $(BIN_DIR)
 
 
 $(BUILD_DIR)/$(TARGET).elf: $(OBJS)
-	$(ECHO) "LD      $<"
+	$(ECHO) "LD      $@"
 	$(Q)$(CC) $(LDFLAGS) $(CFLAGS) $(OBJS) -o "$@"
 
 .SECONDARY: $(OBJS)
@@ -197,7 +197,8 @@ size: $(BUILD_DIR)/$(TARGET).elf
 	$(Q)$(SIZE) $(BUILD_DIR)/$(TARGET).elf
 
 $(BUILD_DIR):
-	$(MKDIR) $@
+	$(ECHO) "MKDIR   $@"
+	$(Q)$(MKDIR) $@
 
 clean:
 	$(ECHO) "CLEAN"
