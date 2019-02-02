@@ -32,23 +32,20 @@
 #include "hid.h"
 #include "led.h"
 
-/* Bootloader size */
-#define BOOTLOADER_SIZE			(2 * 1024)
-
 /* SRAM size */
 #define SRAM_SIZE			(20 * 1024)
 
 /* SRAM end (bottom of stack) */
 #define SRAM_END			(SRAM_BASE + SRAM_SIZE)
 
-/* HID Bootloader takes 2 kb flash. */
-#define USER_PROGRAM			(FLASH_BASE + BOOTLOADER_SIZE)
+/* User Program is at the start of the Flash memory. */
+#define USER_PROGRAM			FLASH_BASE
 
 /* Initial stack pointer index in vector table*/
 #define INITIAL_MSP			0
 
 /* Reset handler index in vector table*/
-#define RESET_HANDLER			1
+#define USER_RESET_HANDLER		0x1c
 
 /* Simple function pointer type to call user program */
 typedef void (*funct_ptr)(void);
@@ -179,7 +176,8 @@ void Reset_Handler(void)
 	UploadStarted = false;
 	UploadFinished = false;
 	funct_ptr UserProgram =
-		(funct_ptr) *(volatile uint32_t *) (USER_PROGRAM + 0x04);
+		(funct_ptr) *(volatile uint32_t *) (USER_PROGRAM +
+						    USER_RESET_HANDLER);
 
 	/* If:
 	 *  - PB2 (BOOT 1 pin) is HIGH or
@@ -192,9 +190,8 @@ void Reset_Handler(void)
 		READ_BIT(GPIOB->IDR, GPIO_IDR_IDR2) ||
 		(check_user_code(USER_PROGRAM) == false)) {
 
-		/* If a magic word was stored in the battery-backed
-		 * RAM registers from the Arduino IDE, exit from USB
-		 * Serial mode and go to HID mode...
+		/* Disconnect USB to force a re-enumaration in all
+		 * cases
 		 */
 		LED2_ON;
 		USB_Shutdown();
@@ -220,11 +217,6 @@ void Reset_Handler(void)
 	/* Turn GPIO clocks off */
 	CLEAR_BIT(RCC->APB2ENR,
 		LED1_CLOCK | LED2_CLOCK | DISC_CLOCK/* | RCC_APB2ENR_IOPBEN*/);
-
-	/* Setup the vector table to the final user-defined one in Flash
-	 * memory
-	 */
-	WRITE_REG(SCB->VTOR, USER_PROGRAM);
 
 	/* Setup the stack pointer to the user-defined one */
 	__set_MSP((*(volatile uint32_t *) USER_PROGRAM));

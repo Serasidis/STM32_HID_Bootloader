@@ -35,7 +35,7 @@
 
 #define VID           0x1209
 #define PID           0xBEBA
-#define FIRMWARE_VER  0x0300
+#define FIRMWARE_VER  0x0400
 
 int serial_init(char *argument, uint8_t __timer);
 
@@ -76,7 +76,7 @@ int main(int argc, char *argv[]) {
   uint8_t _timer = 0;
 	
 	printf("\n+-----------------------------------------------------------------------+\n");
-	printf  ("|         HID-Flash v2.1 - STM32 HID Bootloader Flash Tool              |\n");
+	printf  ("|         HID-Flash v2.2 - STM32 HID Bootloader Flash Tool              |\n");
 	printf  ("|     (c)      2018 - Bruno Freitas       http://www.brunofreitas.com   |\n");
 	printf  ("|     (c) 2018-2019 - Vassilis Serasidis  https://www.serasidis.gr      |\n");
 	printf  ("|   Customized for STM32duino ecosystem   https://www.stm32duino.com    |\n");
@@ -103,8 +103,8 @@ int main(int argc, char *argv[]) {
     while (cur_dev) { //Search for valid HID Bootloader USB devices
       if((cur_dev->vendor_id == VID)&&(cur_dev->product_id = PID)){
         valid_hid_devices++;
-        if(cur_dev->release_number < FIRMWARE_VER){ //The STM32 board has firmware lower than 3.00
-          printf("\nError - Please update the firmware to the latest version (v3.00+)");
+        if(cur_dev->release_number < FIRMWARE_VER){ //The STM32 board has firmware lower than 4.00
+          printf("\nError - Please update the firmware to the latest version (v4.00+)");
           goto exit;
         }
       }

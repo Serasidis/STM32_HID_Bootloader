@@ -36,8 +36,8 @@
 /* Flash memory base address */
 #define FLASH_BASE_ADDRESS	0x08000000
 
-/* This should be the last page taken by the bootloader */
-#define MIN_PAGE		2
+/* This should be the last page taken by the user application */
+#define MAX_PAGE		(64 - 2)
 
 /* Maximum packet size */
 #define MAX_PACKET_SIZE		8
@@ -59,6 +59,9 @@
 /* EP1  */
 /* TX buffer base address */
 #define ENDP1_TXADDR		(0x100)
+
+/* The bootloader entry point function prototype */
+extern void Reset_Handler(void);
 
 /* Upload started flag */
 volatile bool UploadStarted;
@@ -89,7 +92,7 @@ static const uint8_t USB_DeviceDescriptor[] = {
 	MAX_PACKET_SIZE,	// bMaxPacketSize0 8
 	0x09, 0x12,		// idVendor 0x1209
 	0xBA, 0xBE,		// idProduct 0xBEBA
-	0x00, 0x03,		// bcdDevice 3.00
+	0x00, 0x04,		// bcdDevice 4.00
 	0x01,			// iManufacturer (String Index)
 	0x02,			// iProduct (String Index)
 	0x00,			// iSerialNumber (String Index)
@@ -245,6 +248,7 @@ static uint8_t HIDUSB_PacketIsCommand(void)
 static void HIDUSB_HandleData(uint8_t *data)
 {
 	uint16_t *page_address;
+	uint32_t *patched_vector_table;
 
 	memcpy(PageData + CurrentPageOffset, data, MAX_PACKET_SIZE);
 	CurrentPageOffset += MAX_PACKET_SIZE;
@@ -255,7 +259,7 @@ static void HIDUSB_HandleData(uint8_t *data)
 
 			/* Reset Page Command */
 			UploadStarted = true;
-			CurrentPage = MIN_PAGE;
+			CurrentPage = 0;
 			CurrentPageOffset = 0;
 		break;
 
@@ -269,6 +273,21 @@ static void HIDUSB_HandleData(uint8_t *data)
 			break;
 		}
 	} else if (CurrentPageOffset >= PAGE_SIZE) {
+		if (CurrentPage == 0) {
+
+			/* Patch the user Vector Table */
+			patched_vector_table = (uint32_t *) PageData;
+
+			/* Make a backup of the user reset handler */
+			patched_vector_table[7] = patched_vector_table[1];
+
+			/* Replace it with the bootloader reset handler */
+			patched_vector_table[1] = (uint32_t) Reset_Handler;
+		} else if (CurrentPage > MAX_PAGE) {
+
+			/* Do not overwrite the bootloader */
+			return;
+		}
 		LED1_ON;
 		page_address = (uint16_t * ) (FLASH_BASE_ADDRESS +
 			(CurrentPage * PAGE_SIZE));
@@ -286,7 +305,7 @@ void USB_Reset(void)
 {
 
 	/* Initialize Flash Page Settings */
-	CurrentPage = MIN_PAGE;
+	CurrentPage = 0;
 	CurrentPageOffset = 0;
 
 	/* Set buffer descriptor table offset in PMA memory */
