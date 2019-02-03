@@ -123,9 +123,6 @@ void USB_Init(void)
 	/* Enable USB clock */
 	SET_BIT(RCC->APB1ENR, RCC_APB1ENR_USBEN);
 
-	/* Enable USB IRQ in Cortex M3 core */
-	NVIC_EnableIRQ(USB_LP_CAN1_RX0_IRQn);
-
 	/* CNTR_FRES = 1, CNTR_PWDN = 0 */
 	WRITE_REG(*CNTR, CNTR_FRES);
 
@@ -150,7 +147,7 @@ void USB_Init(void)
 	WRITE_REG(*CNTR, CNTR_MASK);
 }
 
-void USB_LP_CAN1_RX0_IRQHandler(void)
+void USB_Poll(void)
 {
 	volatile uint16_t istr;
 
