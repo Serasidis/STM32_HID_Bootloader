@@ -777,6 +777,6 @@ void USB_Buffer2PMA(uint8_t EPn);
 void USB_SendData(uint8_t EPn, uint16_t *Data, uint16_t Length);
 void USB_Shutdown(void);
 void USB_Init(void);
-void USB_Poll(void);
+void USB_LP_CAN1_RX0_IRQHandler(void);
 
 #endif /* USB_H_ */

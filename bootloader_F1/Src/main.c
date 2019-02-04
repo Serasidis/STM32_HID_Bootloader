@@ -32,20 +32,26 @@
 #include "hid.h"
 #include "led.h"
 
+/* Bootloader size */
+#define BOOTLOADER_SIZE			(2 * 1024)
+
 /* SRAM size */
 #define SRAM_SIZE			(20 * 1024)
 
 /* SRAM end (bottom of stack) */
 #define SRAM_END			(SRAM_BASE + SRAM_SIZE)
 
-/* User Program is at the start of the Flash memory. */
-#define USER_PROGRAM			FLASH_BASE
+/* HID Bootloader takes 2 kb flash. */
+#define USER_PROGRAM			(FLASH_BASE + BOOTLOADER_SIZE)
 
 /* Initial stack pointer index in vector table*/
 #define INITIAL_MSP			0
 
 /* Reset handler index in vector table*/
-#define USER_RESET_HANDLER		0x1c
+#define RESET_HANDLER			1
+
+/* USB Low-Priority and CAN1 RX0 IRQ handler idnex in vector table */
+#define USB_LP_CAN1_RX0_IRQ_HANDLER	36
 
 /* Simple function pointer type to call user program */
 typedef void (*funct_ptr)(void);
@@ -72,17 +78,14 @@ static void delay(uint32_t timeout)
 
 static bool check_flash_complete(void)
 {
-	static uint32_t counter;
-
 	if (UploadFinished == true) {
 		return true;
 	}
 	if (UploadStarted == false) {
-		if (counter++ & 0x00004000) {
-			LED1_ON;
-		} else {
-			LED1_OFF;
-		}
+		LED1_ON;
+		delay(200000L);
+		LED1_OFF;
+		delay(200000L);
 	}
 	return false;
 }
@@ -157,11 +160,22 @@ static void set_sysclock_to_72_mhz(void)
 
 void Reset_Handler(void)
 {
+	volatile uint32_t *const ram_vectors =
+		(volatile uint32_t *const) SRAM_BASE;
 
 	/* Setup the system clock (System clock source, PLL Multiplier
 	 * factors, AHB/APBx prescalers and Flash settings)
 	 */
 	set_sysclock_to_72_mhz();
+
+	/* Setup a temporary vector table into SRAM, so we can handle
+	 * USB IRQs
+	 */
+	ram_vectors[INITIAL_MSP] = SRAM_END;
+	ram_vectors[RESET_HANDLER] = (uint32_t) Reset_Handler;
+	ram_vectors[USB_LP_CAN1_RX0_IRQ_HANDLER] =
+		(uint32_t) USB_LP_CAN1_RX0_IRQHandler;
+	WRITE_REG(SCB->VTOR, (volatile uint32_t) ram_vectors);
 
 	/* Check for a magic word in BACKUP memory */
 	uint16_t magic_word = get_and_clear_magic_word();
@@ -176,8 +190,7 @@ void Reset_Handler(void)
 	UploadStarted = false;
 	UploadFinished = false;
 	funct_ptr UserProgram =
-		(funct_ptr) *(volatile uint32_t *) (USER_PROGRAM +
-						    USER_RESET_HANDLER);
+		(funct_ptr) *(volatile uint32_t *) (USER_PROGRAM + 0x04);
 
 	/* If:
 	 *  - PB2 (BOOT 1 pin) is HIGH or
@@ -189,16 +202,20 @@ void Reset_Handler(void)
 	if ((magic_word == 0x424C) ||
 		READ_BIT(GPIOB->IDR, GPIO_IDR_IDR2) ||
 		(check_user_code(USER_PROGRAM) == false)) {
+		if (magic_word == 0x424C) {
 
-		/* Disconnect USB to force a re-enumaration in all
-		 * cases
-		 */
-		LED2_ON;
-		USB_Shutdown();
-		delay(4000000L);
+			/* If a magic word was stored in the
+			 * battery-backed RAM registers from the
+			 * Arduino IDE, exit from USB Serial mode and
+			 * go to HID mode...
+			 */
+			LED2_ON;
+			USB_Shutdown();
+			delay(4000000L);
+		}
 		USB_Init();
 		while (check_flash_complete() == false) {
-			USB_Poll();
+			delay(400L);
 		};
 
 		/* Reset the USB */
@@ -217,6 +234,11 @@ void Reset_Handler(void)
 	/* Turn GPIO clocks off */
 	CLEAR_BIT(RCC->APB2ENR,
 		LED1_CLOCK | LED2_CLOCK | DISC_CLOCK/* | RCC_APB2ENR_IOPBEN*/);
+
+	/* Setup the vector table to the final user-defined one in Flash
+	 * memory
+	 */
+	WRITE_REG(SCB->VTOR, USER_PROGRAM);
 
 	/* Setup the stack pointer to the user-defined one */
 	__set_MSP((*(volatile uint32_t *) USER_PROGRAM));

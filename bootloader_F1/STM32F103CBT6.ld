@@ -26,7 +26,7 @@ SECTIONS
   } >FLASH
 
   /* The program code and other data goes into FLASH */
-  .text 0x801F800 :
+  .text :
   {
     . = ALIGN(4);
     *(.text)           /* .text sections (code) */
