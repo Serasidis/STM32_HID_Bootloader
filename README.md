@@ -15,7 +15,7 @@ for **STM32F10x** and **STM32F4xx** devices.
 It doesn't use ST libraries since they are bloated and buggy. Only CMSIS and
 some required system files and macros have been used from ST provided SDK.
 
-This allowed for a very small bootloader ~~~4 KB~~~ **2 KB** on STM32F10x devices. On STM32F4xx devices there is no point to make the bootloader much smaller than 16 KB because the first flash page is already 16 KB.
+This allowed for a very small bootloader ~~4 KB~~ **2 KB** on STM32F10x devices. On STM32F4xx devices there is no point to make the bootloader much smaller than 16 KB because the first flash page is already 16 KB.
 
 
 This repo is based on **bootsector's**  [stm32-hid-bootloader](https://github.com/bootsector/stm32-hid-bootloader) repository but is customized to follows the [STM32duino](https://github.com/rogerclarkmelbourne/Arduino_STM32) ecosystem requirements. The source files (Bootloader and CLI) can be compiled on ***Windows***, ***Linux*** or ***Mac***
