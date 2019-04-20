@@ -37,7 +37,7 @@ void pins_init(void)
 	DISC_BIT_1;
 	DISC_MODE;
 	DISC_LOW;
-
+  
 #if defined PB2_PULLDOWN
 
 	SET_BIT(GPIOB->CRL, GPIO_CRL_CNF2_1);
