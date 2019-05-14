@@ -22,7 +22,7 @@ This repo is based on **bootsector's**  [stm32-hid-bootloader](https://github.co
 
 ## Installing the HID bootloader to STM32 devices
 
-###(ST-Link version)
+### (ST-Link version)
 
 1. Download the HID binaries.  [STM32F103 binaries](https://github.com/Serasidis/STM32_HID_Bootloader/tree/master/bootloader_F1/bootloader_only_binaries) , [STM32F4xx binaries](https://github.com/Serasidis/STM32_HID_Bootloader/tree/master/bootloader_F4/bootloader_only_binaries)
 2. Download the [texane stlink](https://github.com/texane/stlink/releases/tag/1.3.0) according to your operating system (Windows, MacOSX, Linux)
