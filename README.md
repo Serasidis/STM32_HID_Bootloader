@@ -21,6 +21,7 @@ This allowed for a very small bootloader ~~4 KB~~ **2 KB** on STM32F10x devices.
 This repo is based on **bootsector's**  [stm32-hid-bootloader](https://github.com/bootsector/stm32-hid-bootloader) repository but is customized to follows the [STM32duino](https://github.com/rogerclarkmelbourne/Arduino_STM32) ecosystem requirements. The source files (Bootloader and CLI) can be compiled on ***Windows***, ***Linux*** or ***Mac***
 
 ## Installing the HID bootloader to STM32 devices
+
 ###(ST-Link version)
 
 1. Download the HID binaries.  [STM32F103 binaries](https://github.com/Serasidis/STM32_HID_Bootloader/tree/master/bootloader_F1/bootloader_only_binaries) , [STM32F4xx binaries](https://github.com/Serasidis/STM32_HID_Bootloader/tree/master/bootloader_F4/bootloader_only_binaries)
