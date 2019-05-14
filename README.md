@@ -20,6 +20,37 @@ This allowed for a very small bootloader ~~4 KB~~ **2 KB** on STM32F10x devices.
 
 This repo is based on **bootsector's**  [stm32-hid-bootloader](https://github.com/bootsector/stm32-hid-bootloader) repository but is customized to follows the [STM32duino](https://github.com/rogerclarkmelbourne/Arduino_STM32) ecosystem requirements. The source files (Bootloader and CLI) can be compiled on ***Windows***, ***Linux*** or ***Mac***
 
+## Installing the HID bootloader to STM32 devices
+###(ST-Link version)
+
+1. Download the HID binaries.  [STM32F103 binaries](https://github.com/Serasidis/STM32_HID_Bootloader/tree/master/bootloader_F1/bootloader_only_binaries) , [STM32F4xx binaries](https://github.com/Serasidis/STM32_HID_Bootloader/tree/master/bootloader_F4/bootloader_only_binaries)
+2. Download the [texane stlink](https://github.com/texane/stlink/releases/tag/1.3.0) according to your operating system (Windows, MacOSX, Linux)
+3. Extract the texane stlink to your hard disk. You will need the file ```st-flash``` (it is into the bin folder).
+4. Copy into that folder the HID Bootloader file (xxx.bin) according to your board. ``` 	hid_generic_pc13.bin``` The on-board LED is connectet to the PC13 pin.
+5. Connect ```BOOT-0``` and ```BOOT-1``` pins or (on-board jumpers) to GND ('0' on BluePill board) 
+6. Type on Windows CMD (or Linux terminal) ```st-flash.exe write hid_generic_pc13.bin 0x8000000``` for programming the HID Bootloader firmware to a **BluePill** board.
+7. Apply the ```Arduino_STM32_patch``` from [here](https://github.com/Serasidis/STM32_HID_Bootloader) in case of using Roger's Core (select the zip file according to your Operating System). 
+8. ***STM Official Core will be supported soon***.
+9. Select from Arduino IDE ```Tools > Board > [your_stm32_board]```
+10. Select  ```Tools > Upload method > HID Bootloader 2.1``` or newer 
+11. You are ready !
+
+Normally, both ```BOOT-0``` and ```BOOT-1``` must be connected to '0'. If you connect ```BOOT-1``` pin to 3.3V (or '1' on BluePill boards), the board will stay in HID Bootloader mode.  
+  
+
+### (Serial Dongle version)
+
+1. Download the HID binaries.  [STM32F103 binaries](https://github.com/Serasidis/STM32_HID_Bootloader/tree/master/bootloader_F1/bootloader_only_binaries) , [STM32F4xx binaries](https://github.com/Serasidis/STM32_HID_Bootloader/tree/master/bootloader_F4/bootloader_only_binaries)
+2. Download the [stm32flash](https://github.com/rogerclarkmelbourne/Arduino_STM32/tree/master/tools) from Roger's Clark Github repo.
+3. Extract the stm32flash to your hard disk.
+4. Copy into that folder the HID Bootloader file (xxx.bin) according to your board. ``` 	hid_generic_pc13.bin``` The on-board LED is connectet to the PC13 pin.
+5. Set ```BOOT-0``` pin to '1' (3.3V) and reset the board
+6. Type on Windows CMD (or Linux terminal) ```stm32flash.exe -g 0x8000000 -b 115200 -w hid_generic_pc13.bin COM2 ``` or ```stm32flash -g 0x8000000 -b 115200 -w hid_generic_pc13.bin /dev/ttyS0``` for programming the HID Bootloader firmware to a **BluePill** board.
+7. Apply the ```Arduino_STM32_patch``` from [here](https://github.com/Serasidis/STM32_HID_Bootloader) in case of using Roger's Core (select the zip file according to your Operating System). 
+8. ***STM Official Core will be supported soon***.
+9. Select from Arduino IDE ```Tools > Board > [your_stm32_board]```
+10. Select  ```Tools > Upload method > HID Bootloader 2.1``` or newer 
+11. You are ready !
 
 ## CLI folder
 
