@@ -59,6 +59,18 @@ Normally, both ```BOOT-0``` and ```BOOT-1``` must be connected to '0'. If you co
 This bootloader should't have any compiler restrictions, so it should work with
 any GCC ARM toolchain version (latest is always recommended!). Just run 'make' on that folder.
 
+### Linux udev setup:
+
+To use the HID bootloader without root permissions the following udev rule needs to be installed to the /etc/udev/rules.d/99-stm32_hid_bl.rules:
+
+```
+# STM32_HID_bootloader
+ATTR{idProduct}=="beba", ATTR{idVendor}=="1209", MODE="666" 
+```
+
+You might need to reboot or run ```udevadm control --reload-rules``` and replug your device to use it as a normal user after installing.
+
+
 ### Windows examples:
 
 ```D:\STM32_HID_bootloader\cli>make clean``` Clears the previous generated files
