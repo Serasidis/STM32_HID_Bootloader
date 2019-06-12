@@ -15,16 +15,19 @@ for **STM32F10x** and **STM32F4xx** devices.
 It doesn't use ST libraries since they are bloated and buggy. Only CMSIS and
 some required system files and macros have been used from ST provided SDK.
 
-This allowed for a very small bootloader ~~4 KB~~ **2 KB** on STM32F10x devices. On STM32F4xx devices there is no point to make the bootloader much smaller than 16 KB because the first flash page is already 16 KB.
+This allowed for a very small bootloader ~~4 KB~~ **2 KB** on `STM32F10x` devices. On `STM32F4xx` devices there is no point to make the bootloader much smaller than 16 KB because the first flash page is already 16 KB.
 
 
-This repo is based on **bootsector's**  [stm32-hid-bootloader](https://github.com/bootsector/stm32-hid-bootloader) repository but is customized to follows the [STM32duino](https://github.com/rogerclarkmelbourne/Arduino_STM32) ecosystem requirements. The source files (Bootloader and CLI) can be compiled on ***Windows***, ***Linux*** or ***Mac***
+This repo is based on **bootsector's**  [stm32-hid-bootloader](https://github.com/bootsector/stm32-hid-bootloader) repository but is customized to follows the [Arduino_Core_STM32](https://github.com/stm32duino/Arduino_Core_STM32) Core requirements. The source files (Bootloader and CLI) can be compiled on ***Windows***, ***Linux*** or ***Mac***.
+
+
+For your convenience, you can find [here](https://github.com/Serasidis/STM32_HID_Bootloader/releases) the **hid-flash** tool for these three platforms and the F1 and F4 firmware binaries. 
 
 ## Installing the HID bootloader to STM32 devices
 
 ### (ST-Link version)
 
-1. Download the HID binaries.  [STM32F103 binaries](https://github.com/Serasidis/STM32_HID_Bootloader/tree/master/bootloader_F1/bootloader_only_binaries) , [STM32F4xx binaries](https://github.com/Serasidis/STM32_HID_Bootloader/tree/master/bootloader_F4/bootloader_only_binaries)
+1. Download the [latest HID Bootloader](https://github.com/Serasidis/STM32_HID_Bootloader/releases) release
 2. Download the [texane stlink](https://github.com/texane/stlink/releases/tag/1.3.0) according to your operating system (Windows, MacOSX, Linux)
 3. Extract the texane stlink to your hard disk. You will need the file ```st-flash``` (it is into the bin folder).
 4. Copy into that folder the HID Bootloader file (xxx.bin) according to your board. ``` 	hid_generic_pc13.bin``` The on-board LED is connectet to the PC13 pin.
@@ -41,7 +44,7 @@ Normally, both ```BOOT-0``` and ```BOOT-1``` must be connected to '0'. If you co
 
 ### (Serial Dongle version)
 
-1. Download the HID binaries.  [STM32F103 binaries](https://github.com/Serasidis/STM32_HID_Bootloader/tree/master/bootloader_F1/bootloader_only_binaries) , [STM32F4xx binaries](https://github.com/Serasidis/STM32_HID_Bootloader/tree/master/bootloader_F4/bootloader_only_binaries)
+1. Download the [latest HID Bootloader](https://github.com/Serasidis/STM32_HID_Bootloader/releases) release
 2. Download the [stm32flash](https://github.com/rogerclarkmelbourne/Arduino_STM32/tree/master/tools) from Roger's Clark Github repo.
 3. Extract the stm32flash to your hard disk.
 4. Copy into that folder the HID Bootloader file (xxx.bin) according to your board. ``` 	hid_generic_pc13.bin``` The on-board LED is connectet to the PC13 pin.
@@ -59,9 +62,11 @@ Normally, both ```BOOT-0``` and ```BOOT-1``` must be connected to '0'. If you co
 This bootloader should't have any compiler restrictions, so it should work with
 any GCC ARM toolchain version (latest is always recommended!). Just run 'make' on that folder.
 
+The `hid-flash` binary tool (executable) is also included in the [latest HID Bootloader](https://github.com/Serasidis/STM32_HID_Bootloader/releases) release
+
 ### Linux udev setup:
 
-To use the HID bootloader without root permissions the following udev rule needs to be installed to the /etc/udev/rules.d/99-stm32_hid_bl.rules:
+To use the HID bootloader without root permissions the following udev rule needs to be installed to the `/etc/udev/rules.d/99-stm32_hid_bl.rules`
 
 ```
 # STM32_HID_bootloader
@@ -83,22 +88,22 @@ You might need to reboot or run ```udevadm control --reload-rules``` and replug 
 ### Examples:
 ***STM32F10x***
 
-```D:\STM32_HID_bootloader\bootloader_F1\bootloader>make clean``` Clears the previous generated files
-```D:\STM32_HID_bootloader\bootloader_F1\bootloader>make``` Creates the **hid_bootloader.bin** file
+```D:\STM32_HID_bootloader\bootloader\F1>make clean``` Clears the previous generated files
+```D:\STM32_HID_bootloader\bootloader\F1>make``` Creates the **hid_bootloader.bin** file
 
 
 
 ***STM32F4xx***
 
-```D:\STM32_HID_bootloader\bootloader_F4\bootloader>make clean``` Clears the previous generated files
-```D:\STM32_HID_bootloader\bootloader_F4\bootloader>make``` Creates the **hid_bootloader.bin** file
+```D:\STM32_HID_bootloader\bootloader\F4>make clean``` Clears the previous generated files
+```D:\STM32_HID_bootloader\bootloader\F4>make``` Creates the **hid_bootloader.bin** file
 
 The binary file can be found in:
 
-```D:\STM32_HID_bootloader\bootloader_F4\bootloader\build\HID_Bootloader_F4.bin```
+```D:\STM32_HID_bootloader\bootloader\F4\build\hid_bootloader.bin```
 
 ### Screenshot
 
 <p align="center">
-<img src="pictures/Arduino_IDE_1_8_5.PNG">
+<img src="pictures/Arduino_IDE_1_8_9.PNG">
 </p>

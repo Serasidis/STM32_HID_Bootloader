@@ -106,14 +106,14 @@ static uint16_t get_and_clear_magic_word(void)
 	 * PWREN and BKPEN bits in the RCC_APB1ENR register
 	 */
 	SET_BIT(RCC->APB1ENR, RCC_APB1ENR_BKPEN | RCC_APB1ENR_PWREN);
-	uint16_t value = READ_REG(BKP->DR10);
+	uint16_t value = READ_REG(BKP->DR4);
 	if (value) {
 
 		/* Enable write access to the backup registers and the
 		 * RTC.
 		 */
 		SET_BIT(PWR->CR, PWR_CR_DBP);
-		WRITE_REG(BKP->DR10, 0x0000);
+		WRITE_REG(BKP->DR4, 0x0000);
 		CLEAR_BIT(PWR->CR, PWR_CR_DBP);
 	}
 	CLEAR_BIT(RCC->APB1ENR, RCC_APB1ENR_BKPEN | RCC_APB1ENR_PWREN);
