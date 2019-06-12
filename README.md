@@ -65,7 +65,7 @@ To use the HID bootloader without root permissions the following udev rule needs
 
 ```
 # STM32_HID_bootloader
-ATTR{idProduct}=="beba", ATTR{idVendor}=="1209", MODE="666" 
+ATTRS{idProduct}=="beba", ATTRS{idVendor}=="1209", MODE:="666" 
 ```
 
 You might need to reboot or run ```udevadm control --reload-rules``` and replug your device to use it as a normal user after installing.
