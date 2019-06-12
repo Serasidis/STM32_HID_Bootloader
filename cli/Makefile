@@ -20,7 +20,8 @@ else
 		LIBS=`pkg-config libusb-1.0 --libs` -lrt -lpthread
 		INCLUDE_DIRS+=`pkg-config libusb-1.0 --cflags`
 		CFLAGS+=-std=gnu99
-    endif
+		LDFLAGS+=-no-pie
+		endif
 endif
 
 OBJECTS=$(SOURCES:.c=.o)

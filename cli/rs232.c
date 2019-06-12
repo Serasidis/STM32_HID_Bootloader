@@ -49,7 +49,7 @@
     
     tty_fd = open(str, O_RDWR | O_NOCTTY);
     if (tty_fd < 0) {
-        fprintf(stderr, "error, counldn't open comport  %s\n", str);
+        fprintf(stderr, "error, counldn't open [%s]\n", str);
         return 1;
     }
     if (tcgetattr(tty_fd, &old_termios) != 0) {
@@ -223,7 +223,7 @@ int RS232_OpenComport(char *comport)
 
   if(Cport==INVALID_HANDLE_VALUE)
   {
-    printf("> unable to open comport\n");
+    //printf("> unable to open comport\n");
     return(1);
   }
 
