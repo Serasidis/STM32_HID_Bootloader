@@ -122,7 +122,7 @@ int main(int argc, char *argv[]) {
   
   handle = hid_open(VID, PID, NULL);
   
-  if(i == 10){
+  if(i == 10 && handle != NULL){
     printf("\n> Unable to open the HID device.\n");
 		error = 1;
 		goto exit;
