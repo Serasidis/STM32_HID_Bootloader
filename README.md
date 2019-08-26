@@ -30,7 +30,7 @@ For your convenience, you can find [here](https://github.com/Serasidis/STM32_HID
 1. Download the [latest HID Bootloader](https://github.com/Serasidis/STM32_HID_Bootloader/releases) release
 2. Download the [texane stlink](https://github.com/texane/stlink/releases/tag/1.3.0) according to your operating system (Windows, MacOSX, Linux)
 3. Extract the texane stlink to your hard disk. You will need the file ```st-flash``` (it is into the bin folder).
-4. Copy into that folder the HID Bootloader file (xxx.bin) according to your board. ``` 	hid_generic_pc13.bin``` The on-board LED is connectet to the PC13 pin.
+4. Copy into that folder the HID Bootloader file (xxx.bin) according to your board. e.g. ```hid_generic_pc13.bin``` file is for BluePil board, ```hid_maple_mini.bin``` is for Maple mini board etc. The on-board LED is connectet to the PC13 pin.
 5. Connect ```BOOT-0``` and ```BOOT-1``` pins (or on-board jumpers) to GND ('0' on BluePill board) 
 6. Type on Windows CMD (or Linux terminal) ```st-flash.exe write hid_generic_pc13.bin 0x8000000``` for programming the HID Bootloader firmware to a **BluePill** board.
 7. Apply the ```Arduino_STM32_patch``` from [here](https://github.com/Serasidis/STM32_HID_Bootloader) in case of using Roger's Core (select the zip file according to your Operating System). 
@@ -46,7 +46,7 @@ Normally, both ```BOOT-0``` and ```BOOT-1``` must be connected to '0'. If you co
 1. Download the [latest HID Bootloader](https://github.com/Serasidis/STM32_HID_Bootloader/releases) release
 2. Download the [stm32flash](https://github.com/rogerclarkmelbourne/Arduino_STM32/tree/master/tools) from Roger's Clark Github repo.
 3. Extract the stm32flash to your hard disk.
-4. Copy into that folder the HID Bootloader file (xxx.bin) according to your board. ``` 	hid_generic_pc13.bin``` The on-board LED is connectet to the PC13 pin.
+4. Copy into that folder the HID Bootloader file (xxx.bin) according to your board. e.g. ```hid_generic_pc13.bin``` file is for BluePil board, ```hid_maple_mini.bin``` is for Maple mini board etc The on-board LED is connectet to the PC13 pin.
 5. Set ```BOOT-0``` pin to '1' (3.3V) and reset the board
 6. Type on Windows CMD (or Linux terminal) ```stm32flash.exe -g 0x8000000 -b 115200 -w hid_generic_pc13.bin COM2 ``` or ```stm32flash -g 0x8000000 -b 115200 -w hid_generic_pc13.bin /dev/ttyS0``` for programming the HID Bootloader firmware to a **BluePill** board.
 7. Apply the ```Arduino_STM32_patch``` from [here](https://github.com/Serasidis/STM32_HID_Bootloader) in case of using Roger's Core (select the zip file according to your Operating System). 
