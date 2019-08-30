@@ -78,8 +78,8 @@ You might need to reboot or run ```udevadm control --reload-rules``` and replug 
 
 ### Windows examples:
 
-```D:\STM32_HID_bootloader\cli>make clean``` Clears the previous generated files
-```D:\STM32_HID_bootloader\cli>make``` Creates the **hid-flash.exe** file
+```[YOUR_HDD_PATH]\STM32_HID_bootloader\cli>make clean``` Clears the previous generated files
+```[YOUR_HDD_PATH]\STM32_HID_bootloader\cli>make``` Creates the **hid-flash.exe** file
 
 
 ## Bootloader folder
@@ -88,19 +88,24 @@ You might need to reboot or run ```udevadm control --reload-rules``` and replug 
 ### Examples:
 ***STM32F10x***
 
-```D:\STM32_HID_bootloader\bootloader\F1>make clean``` Clears the previous generated files
-```D:\STM32_HID_bootloader\bootloader\F1>make``` Creates the **hid_bootloader.bin** file
+```[YOUR_HDD_PATH]\STM32_HID_bootloader\bootloader\F1>make clean``` Clears the previous generated files
+```[YOUR_HDD_PATH]\STM32_HID_bootloader\bootloader\F1>make generic-pc13``` Creates the **hid_bootloader.bin** file, assigning the LED to pin PC13. Edit the ***make_all.bat*** file to see all supported pin options.
+
+
+If you want to use a ***High Density Device*** such as ***STM32F103RCT6**, then you have to add an extra argument to the ```make``` command.
+
+**Example:** ```[YOUR_HDD_PATH]\STM32_HID_bootloader\bootloader\F1>make generic-pd2 PAGE_SIZE=2048``` Creates the **hid_bootloader.bin** file, assigning the LED to pin PD2. Edit the ***make_all_hd.bat*** file to see all supported pin options.
 
 
 
 ***STM32F4xx***
 
-```D:\STM32_HID_bootloader\bootloader\F4>make clean``` Clears the previous generated files
-```D:\STM32_HID_bootloader\bootloader\F4>make``` Creates the **hid_bootloader.bin** file
+```[YOUR_HDD_PATH]\STM32_HID_bootloader\bootloader\F4>make clean``` Clears the previous generated files
+```[YOUR_HDD_PATH]\STM32_HID_bootloader\bootloader\F4>make``` Creates the **hid_bootloader.bin** file
 
-The binary file can be found in:
+After compiling, the binary file can be found in:
 
-```D:\STM32_HID_bootloader\bootloader\F4\build\hid_bootloader.bin```
+```[YOUR_HDD_PATH]\STM32_HID_bootloader\bootloader\F4\build\hid_bootloader.bin```
 
 ### Screenshot
 

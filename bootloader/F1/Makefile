@@ -4,6 +4,10 @@ DEVICE = STM32F10X_MD
 
 VECTOR_TABLE_OFFSET = 0x0000
 
+# The default Flash Page size (Sector size) for LOW and MEDIUM STM32F103 devices is 1024 bytes
+# High Density STM32F103 devices have 2 kB Flash Page size  
+PAGE_SIZE = 1024 
+
 C_SRCS = Src/main.c Src/usb.c Src/hid.c Src/led.c Src/flash.c
 
 # Be silent per default, but 'make V=1' will show all compiler calls.
@@ -33,6 +37,7 @@ CFLAGS += -D$(DEVICE)
 CFLAGS += -DVECTOR_TABLE_OFFSET=$(VECTOR_TABLE_OFFSET)
 CFLAGS += -nostdlib
 CFLAGS += $(TARGETFLAGS)
+CFLAGS += -DPAGE_SIZE=$(PAGE_SIZE)
 
 LDFLAGS += -Wl,-Map=$(BUILD_DIR)/$(TARGET).map,--cref
 LDFLAGS += -Wl,--gc-sections
@@ -80,7 +85,7 @@ generic-pb12: $(SRCS) clean gccversion build_generic-pb12 copy_generic-pb12 info
 mini-stm32v3: $(SRCS) clean gccversion build_mini-stm32v3 copy_mini-stm32v3 info size
 
 build_maple-mini: TARGETFLAGS= -DTARGET_MAPLE_MINI
-build_maple-mini: LINKER_SCRIPT=STM32F103CBT6.ld
+build_maple-mini: LINKER_SCRIPT=STM32F103C8T6.ld
 build_maple-mini: $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).bin
 copy_maple_mini: $(BIN_DIR)
 	$(ECHO) "COPY    $(BIN_DIR)/hid_maple_mini.bin"

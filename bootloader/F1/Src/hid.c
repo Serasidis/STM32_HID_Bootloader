@@ -36,17 +36,25 @@
 /* Flash memory base address */
 #define FLASH_BASE_ADDRESS	0x08000000
 
-/* This should be the last page taken by the bootloader */
+/* *
+ * PAGE_SIZE : Flash Page size
+ *  Low and MEDIUM Density F103 devices have 1 kB Flash page
+ *  High Density F103 devices have 2 kB Flash page
+ *
+ * PAGEMIN : This should be the last page taken by the bootloader
+ *  (2 * 1024) or (1 * 2048) In any case, the bootloader size is 2048 bytes
+ */
+#if (PAGE_SIZE == 2048)
+#define MIN_PAGE		1
+#else
 #define MIN_PAGE		2
+#endif
 
 /* Maximum packet size */
 #define MAX_PACKET_SIZE		8
 
 /* Command size */
 #define COMMAND_SIZE		64
-
-/* Page size */
-#define PAGE_SIZE		1024
 
 /* Buffer table offsset in PMA memory */
 #define BTABLE_OFFSET		(0x00)
@@ -276,10 +284,13 @@ static void HIDUSB_HandleData(uint8_t *data)
 			PAGE_SIZE / 2);
 		CurrentPage++;
 		CurrentPageOffset = 0;
-		USB_SendData(ENDP1, (uint16_t *) Command,
-			sizeof (Command));
 		LED1_OFF;
 	}
+  
+  if((CurrentPageOffset == 0)||(CurrentPageOffset == 1024)){
+    USB_SendData(ENDP1, (uint16_t *) Command,
+			sizeof (Command));
+  }
 }
 
 void USB_Reset(void)

@@ -169,33 +169,9 @@ int main(void)
 
   /* USER CODE BEGIN 2 */
                                                
- 
-                                                            
-                             
-                                                                          
-                                  
-                                
-                       
-  
   static volatile uint32_t current_Page = (USER_CODE_OFFSET / 1024);
   static volatile uint16_t currentPageOffset = 0;
                                                            
-                         
-  
- 
-                                           
-                                       
- 
-                            
- 
-                                            
- 
-                      
-
-                        
-                                                                   
-                                                
- 
   /* USER CODE END 2 */
 
   /* Infinite loop */
