@@ -133,7 +133,7 @@ int main(int argc, char *argv[]) {
   
   handle = hid_open(VID, PID, NULL);
   
-  if (i == 10 && handle != NULL) {
+  if (handle == NULL) {
     printf("\n> Unable to open the [%04X:%04X] device.\n",VID,PID);
     error = 1;
     goto exit;
