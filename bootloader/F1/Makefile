@@ -18,6 +18,14 @@ Q	:= @
 NULL	:= 2>/dev/null
 endif
 
+# Release mode by default
+DEBUG?=0
+ifeq ($(DEBUG),0)
+CFLAGS += -Os
+else
+CFLAGS += -O0 -g3
+endif
+
 INCLUDE_DIRS += -I Inc
 INCLUDE_DIRS += -I CMSIS/Device/ST/STM32F10x/Include 
 INCLUDE_DIRS += -I CMSIS/Include
@@ -26,7 +34,7 @@ SRCS += $(C_SRCS)
 vpath %.c $(sort $(dir $(C_SRCS)))
 OBJS = $(addprefix $(BUILD_DIR)/,$(notdir $(C_SRCS:.c=.o)))
 
-CFLAGS += -mcpu=cortex-m3 -mthumb -Wall -Os
+CFLAGS += -mcpu=cortex-m3 -mthumb -Wall
 CFLAGS += -std=gnu99
 CFLAGS += -fno-common -static
 CFLAGS += -specs=nano.specs -specs=nosys.specs
