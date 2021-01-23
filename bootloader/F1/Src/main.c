@@ -202,17 +202,10 @@ void Reset_Handler(void)
 	if ((magic_word == 0x424C) ||
 		READ_BIT(GPIOB->IDR, GPIO_IDR_IDR2) ||
 		(check_user_code(USER_PROGRAM) == false)) {
-		if (magic_word == 0x424C) {
-
-			/* If a magic word was stored in the
-			 * battery-backed RAM registers from the
-			 * Arduino IDE, exit from USB Serial mode and
-			 * go to HID mode...
-			 */
-			LED2_ON;
-			USB_Shutdown();
-			delay(4000000L);
-		}
+		/* Reinitialize USB (never trust the previous state) */
+		LED2_ON;
+		USB_Shutdown();
+		delay(4000000L);
 		USB_Init();
 		while (check_flash_complete() == false) {
 			delay(400L);
