@@ -9,5 +9,6 @@ make generic-pa9
 make generic-pe5
 make generic-pb7
 make generic-pb0
+make generic-pb3
 make generic-pb12
 make mini-stm32v3
