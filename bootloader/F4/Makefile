@@ -41,6 +41,7 @@ OPT = -Og
 #######################################
 # Build path
 BUILD_DIR = build
+BIN_DIR = bootloader_only_binaries
 
 ######################################
 # source
@@ -81,6 +82,7 @@ Middlewares/ST/STM32_USB_Device_Library/Class/CustomHID/Src/usbd_customhid.c
 ASM_SOURCES =  \
 startup_stm32f407xx.s
 
+SRCS += $(C_SRCS)
 
 #######################################
 # binaries
@@ -145,7 +147,7 @@ C_INCLUDES =  \
 # compile gcc flags
 ASFLAGS = $(MCU) $(AS_DEFS) $(AS_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections
 
-CFLAGS = $(MCU) $(C_DEFS) $(C_INCLUDES) $(OPT) -std=gnu99 -Wall -fdata-sections -ffunction-sections
+CFLAGS = $(MCU) $(C_DEFS) $(C_INCLUDES) $(TARGETFLAGS) $(OPT) -std=gnu99 -Wall -fdata-sections -ffunction-sections
 
 ifeq ($(DEBUG), 1)
 CFLAGS += -g -gdwarf-2
@@ -155,21 +157,31 @@ endif
 # Generate dependency information
 CFLAGS += -MMD -MP -MF"$(@:%.o=%.d)"
 
+# default action: build all
+all: $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).hex $(BUILD_DIR)/$(TARGET).bin
 
-#######################################
-# LDFLAGS
-#######################################
-# link script
-LDSCRIPT = STM32F407VETx_FLASH.ld
+f407_vgt6_peo: $(SRCS) clean build_f407_vgt6_pe0 copy_f407_vgt6_pe0
+f407_vet6_pa6: $(SRCS) clean build_f407_vet6_pa6 copy_f407_vet6_pa6
+# f411_nucleo_pa5: clean build_f411_nucleo_pa5 copy_f411_nucleo_pa5
+
+build_f407_vgt6_pe0: TARGETFLAGS= -DTARGET_F407_VGT6_PE0
+build_f407_vgt6_pe0: LDSCRIPT = STM32F407VGTx_FLASH.ld
+build_f407_vgt6_pe0: all
+copy_f407_vgt6_pe0: $(BIN_DIR)
+	$(ECHO) "COPY    $(BIN_DIR)/f407_vgt6_peo.bin"
+	cp $(BUILD_DIR)/$(TARGET).bin $(BIN_DIR)/f407_vgt6_peo.bin
+
+build_f407_vet6_pa6: TARGETFLAGS= -DTARGET_F407_VET6_PA6
+build_f407_vet6_pa6: LDSCRIPT = STM32F407VETx_FLASH.ld
+build_f407_vet6_pa6: all
+copy_f407_vet6_pa6: $(BIN_DIR)
+	$(ECHO) "COPY    $(BIN_DIR)/f407_vet6_pa6.bin"
+	cp $(BUILD_DIR)/$(TARGET).bin $(BIN_DIR)/f407_vet6_pa6.bin
 
 # libraries
 LIBS = -lc -lm -lnosys 
 LIBDIR = 
 LDFLAGS = $(MCU) -specs=nano.specs -specs=nosys.specs -T$(LDSCRIPT) $(LIBDIR) $(LIBS) -Wl,-Map=$(BUILD_DIR)/$(TARGET).map,--cref -Wl,--no-wchar-size-warning -Wl,--gc-sections
-
-# default action: build all
-all: $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).hex $(BUILD_DIR)/$(TARGET).bin
-
 
 #######################################
 # build the application
@@ -203,6 +215,9 @@ $(BUILD_DIR)/%.bin: $(BUILD_DIR)/%.elf | $(BUILD_DIR)
 	$(Q)$(BIN) $< $@
 
 $(BUILD_DIR):
+	$(Q)mkdir $@
+
+$(BIN_DIR):
 	$(Q)mkdir $@		
 
 #######################################
