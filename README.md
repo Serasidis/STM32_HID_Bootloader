@@ -99,7 +99,8 @@ If you want to use a ***High Density Device*** such as ***STM32F103RCT6**, then 
 ***STM32F4xx***
 
 ```[YOUR_HDD_PATH]\STM32_HID_bootloader\bootloader\F4>make clean``` Clears the previous generated files
-```[YOUR_HDD_PATH]\STM32_HID_bootloader\bootloader\F4>make``` Creates the **hid_bootloader.bin** file
+
+```[YOUR_HDD_PATH]\STM32_HID_bootloader\bootloader\F4>make build_f407_vgt6_pe0``` Creates the **f407_vgt6_pe.bin** file and copies it to the bootloader_only_binaries directory. Edit the Makefile to see all supported options
 
 After compiling, the binary file can be found in:
 
