@@ -212,6 +212,10 @@ $(BUILD_DIR):
 	$(ECHO) "MKDIR   $@"
 	$(Q)$(MKDIR) $@
 
+$(BIN_DIR):
+	$(ECHO) "MKDIR   $@"
+	$(Q)$(MKDIR) $@
+	
 clean:
 	$(ECHO) "CLEAN"
 	$(Q)$(RM) -f $(BUILD_DIR)/$(TARGET).elf
