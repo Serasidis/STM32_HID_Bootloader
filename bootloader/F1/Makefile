@@ -82,6 +82,7 @@ generic-pe5: $(SRCS) clean gccversion build_generic-pe5 copy_generic-pe5 info si
 generic-pb7: $(SRCS) clean gccversion build_generic-pb7 copy_generic-pb7 info size
 generic-pb0: $(SRCS) clean gccversion build_generic-pb0 copy_generic-pb0 info size
 generic-pb12: $(SRCS) clean gccversion build_generic-pb12 copy_generic-pb12 info size
+generic-pb2: $(SRCS) clean gccversion build_generic-pb2 copy_generic-pb2 info size
 mini-stm32v3: $(SRCS) clean gccversion build_mini-stm32v3 copy_mini-stm32v3 info size
 
 build_maple-mini: TARGETFLAGS= -DTARGET_MAPLE_MINI
@@ -167,6 +168,13 @@ build_generic-pb12: $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).bin
 copy_generic-pb12: $(BIN_DIR)
 	$(ECHO) "COPY    $(BIN_DIR)/hid_generic_pb12.bin"
 	$(Q)$(CP) $(BUILD_DIR)/$(TARGET).bin $(BIN_DIR)/hid_generic_pb12.bin
+
+build_generic-pb2: TARGETFLAGS= -DTARGET_GENERIC_F103_PB2
+build_generic-pb2: LINKER_SCRIPT=STM32F103C8T6.ld
+build_generic-pb2: $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).bin
+copy_generic-pb2: $(BIN_DIR)
+	$(ECHO) "COPY    $(BIN_DIR)/hid_generic_pb2.bin"
+	$(Q)$(CP) $(BUILD_DIR)/$(TARGET).bin $(BIN_DIR)/hid_generic_pb2.bin
 
 build_mini-stm32v3: TARGETFLAGS= -DTARGET_MINI_STM32V3
 build_mini-stm32v3: LINKER_SCRIPT=STM32F103CBT6.ld
