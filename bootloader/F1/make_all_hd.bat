@@ -9,3 +9,4 @@ make generic-pe5 PAGE_SIZE=2048
 make generic-pb7 PAGE_SIZE=2048
 make generic-pb0 PAGE_SIZE=2048
 make generic-pb12 PAGE_SIZE=2048
+make generic-pb2 PAGE_SIZE=2048
