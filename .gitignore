@@ -56,3 +56,5 @@ Temporary Items
 *.lst
 *.map
 *.size
+*.o
+/.vscode

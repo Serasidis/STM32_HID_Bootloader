@@ -123,38 +123,69 @@ static uint16_t get_and_clear_magic_word(void)
 static void set_sysclock_to_72_mhz(void)
 {
 
-	/* Enable HSE */
-	SET_BIT(RCC->CR, RCC_CR_HSEON);
+	__IO uint32_t StartUpCounter = 0, HSEStatus = 0;
 
-	/* Wait until HSE is ready */
-	while (READ_BIT(RCC->CR, RCC_CR_HSERDY) == 0) {
-		;
+	/* SYSCLK, HCLK, PCLK2 and PCLK1 configuration ---------------------------*/    
+	/* Enable HSE */    
+	RCC->CR |= ((uint32_t)RCC_CR_HSEON);
+
+	/* Wait till HSE is ready and if Time out is reached exit */
+	do
+	{
+		HSEStatus = RCC->CR & RCC_CR_HSERDY;
+		StartUpCounter++;  
+	} while((HSEStatus == 0) && (StartUpCounter != 0x5000));
+
+	if ((RCC->CR & RCC_CR_HSERDY) != RESET)
+	{
+		HSEStatus = (uint32_t)0x01;
 	}
+	else
+	{
+		HSEStatus = (uint32_t)0x00;
+	}  
 
-	/* Enable Prefetch Buffer & set Flash access to 2 wait states */
-	SET_BIT(FLASH->ACR, FLASH_ACR_PRFTBE | FLASH_ACR_LATENCY_2);
+	if (HSEStatus == (uint32_t)0x01)
+	{
+		/* Enable Prefetch Buffer */
+		FLASH->ACR |= FLASH_ACR_PRFTBE;
 
-	/* SYSCLK = PCLK2 = HCLK */
-	/* PCLK1 = HCLK / 2 */
-	/* PLLCLK = HSE * 9 = 72 MHz */
-	SET_BIT(RCC->CFGR,
-		RCC_CFGR_HPRE_DIV1 | RCC_CFGR_PPRE2_DIV1 | RCC_CFGR_PPRE1_DIV2 |
-		RCC_CFGR_PLLSRC_HSE | RCC_CFGR_PLLMULL9);
+		/* Flash 2 wait state */
+		FLASH->ACR &= (uint32_t)((uint32_t)~FLASH_ACR_LATENCY);
+		FLASH->ACR |= (uint32_t)FLASH_ACR_LATENCY_2;    
+		
+		/* HCLK = SYSCLK */
+		RCC->CFGR |= (uint32_t)RCC_CFGR_HPRE_DIV1;
+		
+		/* PCLK2 = HCLK */
+		RCC->CFGR |= (uint32_t)RCC_CFGR_PPRE2_DIV1;
+		
+		/* PCLK1 = HCLK */
+		RCC->CFGR |= (uint32_t)RCC_CFGR_PPRE1_DIV2;
 
-	/* Enable PLL */
-	SET_BIT(RCC->CR, RCC_CR_PLLON);
+		/*  PLL configuration: PLLCLK = HSE * 9 = 72 MHz */
+		RCC->CFGR &= (uint32_t)((uint32_t)~(RCC_CFGR_PLLSRC | RCC_CFGR_PLLXTPRE |
+											RCC_CFGR_PLLMULL));
+		RCC->CFGR |= (uint32_t)(RCC_CFGR_PLLSRC_HSE | RCC_CFGR_PLLMULL9);
 
-	/* Wait until PLL is ready */
-	while (READ_BIT(RCC->CR, RCC_CR_PLLRDY) == 0) {
-		;
-	}
+		/* Enable PLL */
+		RCC->CR |= RCC_CR_PLLON;
 
-	/* Select PLL as system clock source */
-	SET_BIT(RCC->CFGR, RCC_CFGR_SW_PLL);
+		/* Wait till PLL is ready */
+		while((RCC->CR & RCC_CR_PLLRDY) == 0)
+		{
+		}
+		
+		/* Select PLL as system clock source */
+		RCC->CFGR &= (uint32_t)((uint32_t)~(RCC_CFGR_SW));
+		RCC->CFGR |= (uint32_t)RCC_CFGR_SW_PLL;    
 
-	/* Wait until PLL is used as system clock source */
-	while (READ_BIT(RCC->CFGR, RCC_CFGR_SWS_1) == 0) {
-		;
+		SystemCoreClockUpdate();
+
+		/* Wait till PLL is used as system clock source */
+		while ((RCC->CFGR & (uint32_t)RCC_CFGR_SWS) != (uint32_t)0x08)
+		{
+		}
 	}
 }
 

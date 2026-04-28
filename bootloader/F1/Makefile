@@ -9,6 +9,7 @@ VECTOR_TABLE_OFFSET = 0x0000
 PAGE_SIZE = 1024 
 
 C_SRCS = Src/main.c Src/usb.c Src/hid.c Src/led.c Src/flash.c
+DEVICE_C_SRCS += CMSIS/Device/ST/STM32F10x/Source/Templates/system_stm32f10x.c
 
 # Be silent per default, but 'make V=1' will show all compiler calls.
 # If you're insane, V=99 will print out all sorts of things.
@@ -22,6 +23,7 @@ INCLUDE_DIRS += -I Inc
 INCLUDE_DIRS += -I CMSIS/Device/ST/STM32F10x/Include 
 INCLUDE_DIRS += -I CMSIS/Include
 
+C_SRCS += $(DEVICE_C_SRCS)
 SRCS += $(C_SRCS)
 vpath %.c $(sort $(dir $(C_SRCS)))
 OBJS = $(addprefix $(BUILD_DIR)/,$(notdir $(C_SRCS:.c=.o)))
