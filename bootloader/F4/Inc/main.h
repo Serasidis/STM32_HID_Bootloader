@@ -94,30 +94,36 @@
 #define HID_MAGIC_NUMBER_BKP_VALUE 0x424C
                              
                         
+#if defined TARGET_F407_VGT6_PE0
+  #define BOOT_1_PIN      GPIO_PIN_15 //DIYMROE VGT6 (https://stm32-base.org/boards/STM32F407VGT6-diymore.html)
+  #define BOOT_1_PORT     GPIOD
+  #define BOOT_1_ENABLED  GPIO_PIN_RESET
+  #define LED_1_PIN       GPIO_PIN_0
+  #define LED_1_PORT      GPIOE
 
-#define BOOT_1_PIN      GPIO_PIN_15 //DIYMROE STM32F407VGT board (Button PD15, LED PE0)
-#define BOOT_1_PORT     GPIOD
-#define BOOT_1_ENABLED  GPIO_PIN_RESET
-#define LED_1_PIN       GPIO_PIN_0
-#define LED_1_PORT      GPIOE
-       
-// #define BOOT_1_PIN      GPIO_PIN_2 //Black VET6 (http://wiki.stm32duino.com/index.php?title=STM32F407)
-// #define BOOT_1_PORT     GPIOB
-// #define BOOT_1_ENABLED  GPIO_PIN_SET // Active if this pin goes to 3.3V (Logic HIGH)
-// #define LED_1_PIN       GPIO_PIN_6 //PA6 = LED D2
-// #define LED_1_PORT      GPIOA
+#elif defined TARGET_F407_VET6_PA6
+  #define BOOT_1_PIN      GPIO_PIN_2 //Black VET6 (https://stm32-base.org/boards/STM32F407VET6-STM32-F4VE-V2.0.html)
+  #define BOOT_1_PORT     GPIOB
+  #define BOOT_1_ENABLED  GPIO_PIN_SET // Active if pin 3.3V (Logic HIGH)
+  #define LED_1_PIN       GPIO_PIN_6
+  #define LED_1_PORT      GPIOA
 
-//#define BOOT_1_PIN      GPIO_PIN_4 //Arch_MAX (Button PB4, LED PB3)
-//#define BOOT_1_PORT     GPIOB
-//#define BOOT_1_ENABLED  GPIO_PIN_RESET
-//#define LED_1_PIN       GPIO_PIN_3
-//#define LED_1_PORT      GPIOB
+  // #define BOOT_1_PIN      GPIO_PIN_4 //Arch_MAX
+  // #define BOOT_1_PORT     GPIOB
+  // #define BOOT_1_ENABLED  GPIO_PIN_RESET
+  // #define LED_1_PIN       GPIO_PIN_3
+  // #define LED_1_PORT      GPIOB
 
-// #define BOOT_1_PIN      GPIO_PIN_13 //Nucleo STM32F411RE board (Button PC13, LED PA5)
-// #define BOOT_1_PORT     GPIOC
-// #define BOOT_1_ENABLED  GPIO_PIN_RESET
-// #define LED_1_PIN       GPIO_PIN_5
-// #define LED_1_PORT      GPIOA
+#elif defined TARGET_F411_NUCLEO_PA5
+  #define BOOT_1_PIN      GPIO_PIN_13 //Nucleo STM32F411RE
+  #define BOOT_1_PORT     GPIOC
+  #define BOOT_1_ENABLED  GPIO_PIN_RESET
+  #define LED_1_PIN       GPIO_PIN_5
+  #define LED_1_PORT      GPIOA
+
+#else
+	#error "No config for this target"
+#endif
 
 /* USER CODE END Private defines */
 
