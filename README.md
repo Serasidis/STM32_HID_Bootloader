@@ -28,7 +28,7 @@ For your convenience, you can find [here](https://github.com/Serasidis/STM32_HID
 ### (ST-Link version)
 
 1. Download the [latest HID Bootloader](https://github.com/Serasidis/STM32_HID_Bootloader/releases) release
-2. Download the [texane stlink](https://github.com/texane/stlink/releases/tag/1.3.0) according to your operating system (Windows, MacOSX, Linux)
+2. Download the [stlink tool](https://github.com/stlink-org/stlink/releases) according to your operating system (Windows, MacOSX, Linux)
 3. Extract the texane stlink to your hard disk. You will need the file ```st-flash``` (it is into the bin folder).
 4. Copy into that folder the HID Bootloader file (xxx.bin) according to your board. e.g. ```hid_generic_pc13.bin``` file is for **BluePill** board, ```hid_maple_mini.bin``` is for **Maple Mini** board etc. The on-board LED is connectet to the PC13 pin.
 5. Connect ```BOOT-0``` and ```BOOT-1``` pins (or on-board jumpers) to GND ('0' on BluePill board) 
