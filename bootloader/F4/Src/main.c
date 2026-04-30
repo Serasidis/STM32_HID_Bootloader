@@ -79,7 +79,7 @@ static uint8_t CMD_SIGNATURE[7] = {'B','T','L','D','C','M','D'};
 
 /* Command: <Send next data pack> */
 static uint8_t CMD_DATA_RECEIVED[8] = {'B','T','L','D','C','M','D',2};
-uint8_t new_data_is_received = 0;
+volatile uint8_t new_data_is_received = 0;
 static uint8_t pageData[SECTOR_SIZE];
 typedef void (*funct_ptr)(void);
 

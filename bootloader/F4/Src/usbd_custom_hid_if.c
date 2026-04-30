@@ -61,7 +61,7 @@
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
 extern uint8_t USB_RX_Buffer[CUSTOM_HID_EPOUT_SIZE];
-extern uint8_t new_data_is_received;
+extern volatile uint8_t new_data_is_received;
 /* USER CODE END PV */
 
 /** @addtogroup STM32_USB_OTG_DEVICE_LIBRARY
